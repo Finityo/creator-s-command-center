@@ -1,1 +1,4 @@
 project_id = "hjaedchzihnrhssukpwd"
+
+[functions.process-scheduled-posts]
+verify_jwt = false

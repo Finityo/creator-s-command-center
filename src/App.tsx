@@ -13,6 +13,7 @@ import Streams from "./pages/Streams";
 import Analytics from "./pages/Analytics";
 import Settings from "./pages/Settings";
 import LinkPage from "./pages/LinkPage";
+import PublicLinkPage from "./pages/PublicLinkPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -45,6 +46,7 @@ const App = () => (
             <Route path="/link-page" element={
               <ProtectedRoute><LinkPage /></ProtectedRoute>
             } />
+            <Route path="/l/:slug" element={<PublicLinkPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>
