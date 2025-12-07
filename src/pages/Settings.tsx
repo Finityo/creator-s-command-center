@@ -2,9 +2,8 @@ import { useState, useEffect, useRef, ChangeEvent } from "react";
 import { LayoutShell } from "@/components/layout/LayoutShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { PlatformBadge } from "@/components/PlatformBadge";
 import { Switch } from "@/components/ui/switch";
-import { CheckCircle, AlertCircle, ExternalLink, Save, Loader2, Upload, X, Sun, Moon } from "lucide-react";
+import { ExternalLink, Save, Loader2, Upload, X, Sun, Moon } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -12,6 +11,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "@/hooks/useTheme";
 import { SocialAccountsManager } from "@/components/settings/SocialAccountsManager";
+import { TeamInvitations } from "@/components/settings/TeamInvitations";
 
 interface Profile {
   id: string;
@@ -282,6 +282,9 @@ export default function Settings() {
             </div>
           </div>
         </div>
+
+        {/* Team Invitations */}
+        <TeamInvitations />
 
         {/* Appearance */}
         <div className="glass-panel rounded-2xl p-5">
