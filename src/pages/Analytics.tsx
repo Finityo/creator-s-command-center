@@ -11,6 +11,7 @@ import { FollowerGrowthChart } from "@/components/analytics/FollowerGrowthChart"
 import { CompetitorAnalysis } from "@/components/analytics/CompetitorAnalysis";
 import { ABTesting } from "@/components/analytics/ABTesting";
 import { EngagementHeatmap } from "@/components/analytics/EngagementHeatmap";
+import { PostAnalyticsDashboard } from "@/components/dashboard/PostAnalyticsDashboard";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type Platform = "X" | "INSTAGRAM" | "FACEBOOK" | "ONLYFANS";
@@ -202,6 +203,7 @@ export default function Analytics() {
         <Tabs defaultValue="engagement" className="w-full">
           <TabsList className="mb-4 flex-wrap">
             <TabsTrigger value="engagement">Engagement</TabsTrigger>
+            <TabsTrigger value="posts">Post Analytics</TabsTrigger>
             <TabsTrigger value="heatmap">Heatmap</TabsTrigger>
             <TabsTrigger value="followers">Followers</TabsTrigger>
             <TabsTrigger value="competitors">Competitors</TabsTrigger>
@@ -233,6 +235,10 @@ export default function Analytics() {
                 </div>
               </div>
             </div>
+          </TabsContent>
+
+          <TabsContent value="posts">
+            <PostAnalyticsDashboard />
           </TabsContent>
 
           <TabsContent value="heatmap">

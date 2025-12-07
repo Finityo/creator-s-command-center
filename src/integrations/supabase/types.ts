@@ -219,6 +219,59 @@ export type Database = {
           },
         ]
       }
+      post_analytics: {
+        Row: {
+          clicks: number | null
+          comments: number | null
+          created_at: string
+          engagements: number | null
+          id: string
+          impressions: number | null
+          likes: number | null
+          post_id: string
+          reach: number | null
+          recorded_at: string
+          shares: number | null
+          user_id: string
+        }
+        Insert: {
+          clicks?: number | null
+          comments?: number | null
+          created_at?: string
+          engagements?: number | null
+          id?: string
+          impressions?: number | null
+          likes?: number | null
+          post_id: string
+          reach?: number | null
+          recorded_at?: string
+          shares?: number | null
+          user_id: string
+        }
+        Update: {
+          clicks?: number | null
+          comments?: number | null
+          created_at?: string
+          engagements?: number | null
+          id?: string
+          impressions?: number | null
+          likes?: number | null
+          post_id?: string
+          reach?: number | null
+          recorded_at?: string
+          shares?: number | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "post_analytics_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "scheduled_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       post_templates: {
         Row: {
           content: string
@@ -292,8 +345,11 @@ export type Database = {
           error_message: string | null
           id: string
           media_url: string | null
+          parent_post_id: string | null
           platform: Database["public"]["Enums"]["platform"]
           queue_order: number | null
+          recurrence_end_date: string | null
+          recurrence_type: string | null
           scheduled_at: string
           social_account_id: string | null
           status: Database["public"]["Enums"]["post_status"]
@@ -306,8 +362,11 @@ export type Database = {
           error_message?: string | null
           id?: string
           media_url?: string | null
+          parent_post_id?: string | null
           platform: Database["public"]["Enums"]["platform"]
           queue_order?: number | null
+          recurrence_end_date?: string | null
+          recurrence_type?: string | null
           scheduled_at: string
           social_account_id?: string | null
           status?: Database["public"]["Enums"]["post_status"]
@@ -320,8 +379,11 @@ export type Database = {
           error_message?: string | null
           id?: string
           media_url?: string | null
+          parent_post_id?: string | null
           platform?: Database["public"]["Enums"]["platform"]
           queue_order?: number | null
+          recurrence_end_date?: string | null
+          recurrence_type?: string | null
           scheduled_at?: string
           social_account_id?: string | null
           status?: Database["public"]["Enums"]["post_status"]
@@ -329,6 +391,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "scheduled_posts_parent_post_id_fkey"
+            columns: ["parent_post_id"]
+            isOneToOne: false
+            referencedRelation: "scheduled_posts"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "scheduled_posts_social_account_id_fkey"
             columns: ["social_account_id"]

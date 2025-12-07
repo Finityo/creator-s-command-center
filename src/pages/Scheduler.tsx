@@ -17,6 +17,7 @@ import { BestTimeRecommendations } from "@/components/scheduler/BestTimeRecommen
 import { ContentRepurposer } from "@/components/scheduler/ContentRepurposer";
 import { SentimentAnalysis } from "@/components/scheduler/SentimentAnalysis";
 import { PostQueue } from "@/components/scheduler/PostQueue";
+import { RecurrenceSettings, RecurrenceType } from "@/components/scheduler/RecurrenceSettings";
 
 // Platform-specific character limits
 const PLATFORM_LIMITS: Record<string, { max: number; name: string }> = {
@@ -38,6 +39,8 @@ interface ScheduledPost {
   status: PostStatus;
   created_at: string;
   queue_order?: number;
+  recurrence_type?: RecurrenceType;
+  recurrence_end_date?: string | null;
 }
 
 export default function Scheduler() {
@@ -56,6 +59,8 @@ export default function Scheduler() {
   const [showBulkUpload, setShowBulkUpload] = useState(false);
   const [showQueue, setShowQueue] = useState(false);
   const [isAutoScheduling, setIsAutoScheduling] = useState(false);
+  const [recurrenceType, setRecurrenceType] = useState<RecurrenceType>("none");
+  const [recurrenceEndDate, setRecurrenceEndDate] = useState("");
 
   // Fetch scheduled posts
   const { data: posts = [], isLoading } = useQuery({
@@ -80,6 +85,8 @@ export default function Scheduler() {
       content: string;
       scheduled_at: string;
       media_url?: string;
+      recurrence_type?: RecurrenceType;
+      recurrence_end_date?: string | null;
     }) => {
       const { data, error } = await supabase
         .from("scheduled_posts")
@@ -90,6 +97,8 @@ export default function Scheduler() {
           scheduled_at: postData.scheduled_at,
           media_url: postData.media_url || null,
           status: "SCHEDULED" as PostStatus,
+          recurrence_type: postData.recurrence_type || "none",
+          recurrence_end_date: postData.recurrence_end_date || null,
         })
         .select()
         .single();
@@ -191,6 +200,8 @@ export default function Scheduler() {
     setSelectedPlatform("");
     setMediaFile(null);
     setMediaPreview(null);
+    setRecurrenceType("none");
+    setRecurrenceEndDate("");
   };
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -267,6 +278,8 @@ export default function Scheduler() {
         content,
         scheduled_at: new Date(scheduleDate).toISOString(),
         media_url: mediaUrl || undefined,
+        recurrence_type: recurrenceType,
+        recurrence_end_date: recurrenceEndDate ? new Date(recurrenceEndDate).toISOString() : null,
       });
     } catch (error: any) {
       toast.error(error.message || "Failed to schedule post");
@@ -498,6 +511,14 @@ export default function Scheduler() {
                 min={new Date().toISOString().slice(0, 16)}
               />
             </div>
+
+            {/* Recurrence Settings */}
+            <RecurrenceSettings
+              recurrenceType={recurrenceType}
+              recurrenceEndDate={recurrenceEndDate}
+              onRecurrenceTypeChange={setRecurrenceType}
+              onRecurrenceEndDateChange={setRecurrenceEndDate}
+            />
 
             {/* Media upload */}
             <div>
