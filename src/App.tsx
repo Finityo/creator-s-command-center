@@ -14,6 +14,7 @@ import Analytics from "./pages/Analytics";
 import Settings from "./pages/Settings";
 import LinkPage from "./pages/LinkPage";
 import PublicLinkPage from "./pages/PublicLinkPage";
+import Notifications from "./pages/Notifications";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -45,6 +46,9 @@ const App = () => (
             } />
             <Route path="/link-page" element={
               <ProtectedRoute><LinkPage /></ProtectedRoute>
+            } />
+            <Route path="/notifications" element={
+              <ProtectedRoute><Notifications /></ProtectedRoute>
             } />
             <Route path="/l/:slug" element={<PublicLinkPage />} />
             <Route path="*" element={<NotFound />} />
