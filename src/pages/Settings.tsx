@@ -3,12 +3,14 @@ import { LayoutShell } from "@/components/layout/LayoutShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PlatformBadge } from "@/components/PlatformBadge";
-import { CheckCircle, AlertCircle, ExternalLink, Save, Loader2, Upload, X } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
+import { CheckCircle, AlertCircle, ExternalLink, Save, Loader2, Upload, X, Sun, Moon } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
+import { useTheme } from "@/hooks/useTheme";
 
 interface Profile {
   id: string;
@@ -54,6 +56,7 @@ export default function Settings() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { theme, toggleTheme } = useTheme();
   
   const [formData, setFormData] = useState({
     display_name: "",
@@ -310,6 +313,34 @@ export default function Settings() {
                 <ExternalLink className="h-3.5 w-3.5" />
               </Button>
             </div>
+          </div>
+        </div>
+
+        {/* Appearance */}
+        <div className="glass-panel rounded-2xl p-5">
+          <h2 className="font-semibold text-foreground mb-2">Appearance</h2>
+          <p className="text-xs text-muted-foreground mb-4">
+            Customize how the app looks.
+          </p>
+
+          <div className="flex items-center justify-between p-3 rounded-xl bg-background border border-border/50">
+            <div className="flex items-center gap-3">
+              {theme === "dark" ? (
+                <Moon className="h-5 w-5 text-primary" />
+              ) : (
+                <Sun className="h-5 w-5 text-primary" />
+              )}
+              <div>
+                <p className="text-sm font-medium text-foreground">Dark Mode</p>
+                <p className="text-xs text-muted-foreground">
+                  {theme === "dark" ? "Currently using dark theme" : "Currently using light theme"}
+                </p>
+              </div>
+            </div>
+            <Switch
+              checked={theme === "dark"}
+              onCheckedChange={toggleTheme}
+            />
           </div>
         </div>
 

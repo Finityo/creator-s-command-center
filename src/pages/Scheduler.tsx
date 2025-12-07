@@ -3,13 +3,12 @@ import { LayoutShell } from "@/components/layout/LayoutShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PlatformBadge } from "@/components/PlatformBadge";
-import { ChevronLeft, ChevronRight, Loader2, Trash2, Image as ImageIcon, X } from "lucide-react";
+import { Loader2, Image as ImageIcon, X } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-
-const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+import { ContentCalendar } from "@/components/calendar/ContentCalendar";
 
 // Platform-specific character limits
 const PLATFORM_LIMITS: Record<string, { max: number; name: string }> = {
@@ -40,7 +39,6 @@ export default function Scheduler() {
   const [selectedPlatform, setSelectedPlatform] = useState<Platform | "">("");
   const [content, setContent] = useState("");
   const [scheduleDate, setScheduleDate] = useState("");
-  const [view, setView] = useState<"week" | "month">("month");
   const [currentDate, setCurrentDate] = useState(new Date());
   const [mediaFile, setMediaFile] = useState<File | null>(null);
   const [mediaPreview, setMediaPreview] = useState<string | null>(null);
@@ -112,6 +110,25 @@ export default function Scheduler() {
     },
     onError: (error: any) => {
       toast.error(error.message || "Failed to delete post");
+    },
+  });
+
+  // Reschedule post mutation
+  const reschedulePost = useMutation({
+    mutationFn: async ({ postId, newDate }: { postId: string; newDate: Date }) => {
+      const { error } = await supabase
+        .from("scheduled_posts")
+        .update({ scheduled_at: newDate.toISOString() })
+        .eq("id", postId);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["scheduled-posts"] });
+      toast.success("Post rescheduled!");
+    },
+    onError: (error: any) => {
+      toast.error(error.message || "Failed to reschedule post");
     },
   });
 
@@ -205,18 +222,6 @@ export default function Scheduler() {
     }
   };
 
-  // Calendar helpers
-  const currentMonth = currentDate.toLocaleString("default", { month: "long", year: "numeric" });
-  const firstDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
-  const lastDayOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0);
-  const startOffset = firstDayOfMonth.getDay();
-  const daysInMonth = lastDayOfMonth.getDate();
-
-  const getPostsForDay = (day: number) => {
-    const dateStr = new Date(currentDate.getFullYear(), currentDate.getMonth(), day).toDateString();
-    return posts.filter(post => new Date(post.scheduled_at).toDateString() === dateStr);
-  };
-
   const goToPrevMonth = () => {
     setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
   };
@@ -225,119 +230,23 @@ export default function Scheduler() {
     setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
   };
 
-  const today = new Date();
+  const handleReschedule = (postId: string, newDate: Date) => {
+    reschedulePost.mutate({ postId, newDate });
+  };
 
   return (
     <LayoutShell>
       <div className="flex flex-col lg:flex-row gap-6">
-        {/* Calendar */}
-        <div className="flex-1 glass-panel rounded-2xl p-5">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="font-semibold text-foreground">Content Calendar</h2>
-            <div className="flex items-center gap-2">
-              <Button 
-                variant="pill" 
-                size="pill" 
-                className={view === "week" ? "bg-primary/20 text-primary" : ""} 
-                onClick={() => setView("week")}
-              >
-                Week
-              </Button>
-              <Button 
-                variant="pill" 
-                size="pill" 
-                className={view === "month" ? "bg-primary/20 text-primary" : ""} 
-                onClick={() => setView("month")}
-              >
-                Month
-              </Button>
-            </div>
-          </div>
-
-          {/* Month navigation */}
-          <div className="flex items-center justify-between mb-4">
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={goToPrevMonth}>
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <span className="text-sm font-medium text-foreground">{currentMonth}</span>
-            <Button variant="ghost" size="icon" className="h-8 w-8" onClick={goToNextMonth}>
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
-
-          {/* Days header */}
-          <div className="grid grid-cols-7 gap-1 mb-2">
-            {daysOfWeek.map((day) => (
-              <div key={day} className="text-center text-xs font-medium text-muted-foreground py-2">
-                {day}
-              </div>
-            ))}
-          </div>
-
-          {/* Calendar grid */}
-          {isLoading ? (
-            <div className="flex items-center justify-center h-64">
-              <Loader2 className="h-6 w-6 animate-spin text-primary" />
-            </div>
-          ) : (
-            <div className="grid grid-cols-7 gap-1">
-              {/* Empty cells for offset */}
-              {Array.from({ length: startOffset }).map((_, idx) => (
-                <div key={`empty-${idx}`} className="min-h-[80px] rounded-xl bg-transparent" />
-              ))}
-              
-              {/* Days of month */}
-              {Array.from({ length: daysInMonth }).map((_, idx) => {
-                const dayNum = idx + 1;
-                const dayPosts = getPostsForDay(dayNum);
-                const isToday = 
-                  dayNum === today.getDate() && 
-                  currentDate.getMonth() === today.getMonth() && 
-                  currentDate.getFullYear() === today.getFullYear();
-
-                return (
-                  <div
-                    key={dayNum}
-                    className={`min-h-[80px] rounded-xl border p-2 transition-colors cursor-pointer hover:border-primary/50 bg-secondary/20 border-border/50 ${
-                      isToday ? "border-primary bg-primary/5" : ""
-                    }`}
-                  >
-                    <div className="flex items-center justify-between mb-1">
-                      <span className={`text-xs ${isToday ? "text-primary font-medium" : "text-muted-foreground"}`}>
-                        {dayNum}
-                      </span>
-                      {dayPosts.length > 0 && (
-                        <span className="text-[10px] text-primary font-medium">{dayPosts.length}</span>
-                      )}
-                    </div>
-                    <div className="space-y-1">
-                      {dayPosts.slice(0, 2).map((post) => (
-                        <div key={post.id} className="flex items-center gap-1 group">
-                          <PlatformBadge platform={post.platform as any} size="sm" showLabel={false} />
-                          <span className="text-[10px] text-muted-foreground truncate flex-1">
-                            {new Date(post.scheduled_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                          </span>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              deletePost.mutate(post.id);
-                            }}
-                            className="opacity-0 group-hover:opacity-100 transition-opacity"
-                          >
-                            <Trash2 className="h-3 w-3 text-destructive" />
-                          </button>
-                        </div>
-                      ))}
-                      {dayPosts.length > 2 && (
-                        <span className="text-[10px] text-muted-foreground">+{dayPosts.length - 2} more</span>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
+        {/* Calendar with drag-to-reschedule */}
+        <ContentCalendar
+          currentDate={currentDate}
+          posts={posts}
+          isLoading={isLoading}
+          onPrevMonth={goToPrevMonth}
+          onNextMonth={goToNextMonth}
+          onReschedule={handleReschedule}
+          onDelete={(id) => deletePost.mutate(id)}
+        />
 
         {/* Compose Panel */}
         <div className="w-full lg:w-80 glass-panel rounded-2xl p-5">
