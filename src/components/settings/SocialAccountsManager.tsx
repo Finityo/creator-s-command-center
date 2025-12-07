@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/AuthContext";
+import { useProfile } from "@/hooks/useProfile";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { PlatformBadge } from "@/components/PlatformBadge";
 import { 
   Link2, 
@@ -89,24 +89,25 @@ const PLATFORM_CONFIGS: PlatformConfig[] = [
 ];
 
 export function SocialAccountsManager() {
-  const { user } = useAuth();
+  const { profile, isLoading: profileLoading } = useProfile();
   const queryClient = useQueryClient();
   const [connectingPlatform, setConnectingPlatform] = useState<PlatformConfig | null>(null);
   const [handle, setHandle] = useState("");
 
-  // Fetch social accounts
+  // Fetch social accounts scoped to profile.id
   const { data: accounts = [], isLoading } = useQuery({
-    queryKey: ["social-accounts", user?.id],
+    queryKey: ["social-accounts", profile?.id],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("social_accounts")
-        .select("*")
-        .eq("user_id", user?.id);
+        .select("id, platform, handle, is_connected, token_expires_at")
+        .eq("user_id", profile!.id)
+        .order("platform");
 
       if (error) throw error;
       return data as SocialAccount[];
     },
-    enabled: !!user?.id,
+    enabled: !!profile?.id,
   });
 
   // Connect account mutation
@@ -130,7 +131,7 @@ export function SocialAccountsManager() {
         const { error } = await supabase
           .from("social_accounts")
           .insert({
-            user_id: user?.id,
+            user_id: profile?.id,
             platform,
             handle,
             is_connected: true,
@@ -183,13 +184,15 @@ export function SocialAccountsManager() {
     });
   };
 
-  if (isLoading) {
+  if (profileLoading || isLoading) {
     return (
       <div className="flex items-center justify-center h-32">
         <Loader2 className="h-5 w-5 animate-spin text-primary" />
       </div>
     );
   }
+
+  if (!profile) return null;
 
   return (
     <div className="space-y-4">
