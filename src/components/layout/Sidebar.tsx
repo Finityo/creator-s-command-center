@@ -8,7 +8,8 @@ import {
   Settings, 
   Link as LinkIcon,
   Menu,
-  X
+  X,
+  Bell
 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -18,6 +19,7 @@ const navItems = [
   { to: "/scheduler", label: "Scheduler", icon: Calendar },
   { to: "/streams", label: "Streams", icon: Radio },
   { to: "/analytics", label: "Analytics", icon: BarChart3 },
+  { to: "/notifications", label: "Notifications", icon: Bell },
   { to: "/link-page", label: "Link Page", icon: LinkIcon },
   { to: "/settings", label: "Settings", icon: Settings },
 ];

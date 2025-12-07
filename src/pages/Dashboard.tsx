@@ -2,12 +2,13 @@ import { LayoutShell } from "@/components/layout/LayoutShell";
 import { StatCard } from "@/components/StatCard";
 import { PlatformBadge } from "@/components/PlatformBadge";
 import { Button } from "@/components/ui/button";
-import { Users, Eye, MousePointer, Clock, ArrowRight, CheckCircle, AlertCircle, Circle, Loader2, History } from "lucide-react";
+import { Users, Eye, MousePointer, Clock, ArrowRight, CheckCircle, AlertCircle, Circle, Loader2, History, RefreshCw } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { PostHistory } from "@/components/dashboard/PostHistory";
+import { RetryQueue } from "@/components/dashboard/RetryQueue";
 
 type Platform = "X" | "INSTAGRAM" | "FACEBOOK" | "ONLYFANS";
 
@@ -224,6 +225,18 @@ export default function Dashboard() {
               </div>
             )}
           </div>
+        </div>
+
+        {/* Retry Queue Section */}
+        <div className="glass-panel rounded-2xl p-5">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <RefreshCw className="h-5 w-5 text-red-400" />
+              <h2 className="font-semibold text-foreground">Failed Posts</h2>
+            </div>
+            <span className="text-xs text-muted-foreground">Retry queue</span>
+          </div>
+          <RetryQueue />
         </div>
 
         {/* Post History Section */}

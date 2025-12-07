@@ -12,6 +12,7 @@ interface NotificationRequest {
   recipientEmail: string;
   recipientName?: string;
   userId?: string;
+  postId?: string;
   data: Record<string, any>;
 }
 
@@ -116,21 +117,12 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  try {
-    const resendApiKey = Deno.env.get("RESEND_API_KEY");
-    
-    if (!resendApiKey) {
-      console.log("RESEND_API_KEY not configured - skipping email notification");
-      return new Response(
-        JSON.stringify({ 
-          success: false, 
-          message: "Email notifications not configured. Add RESEND_API_KEY to enable." 
-        }),
-        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
+  const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+  const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-    const { type, recipientEmail, recipientName, userId, data }: NotificationRequest = await req.json();
+  try {
+    const { type, recipientEmail, recipientName, userId, postId, data }: NotificationRequest = await req.json();
 
     if (!type || !recipientEmail) {
       return new Response(
@@ -139,13 +131,32 @@ serve(async (req) => {
       );
     }
 
+    const emailContent = getEmailContent(type, data);
+
+    // Create notification history record
+    const historyRecord = {
+      user_id: userId || null,
+      type,
+      recipient_email: recipientEmail,
+      subject: emailContent.subject,
+      status: 'pending',
+      post_id: postId || null,
+      metadata: { recipientName, ...data },
+    };
+
+    const { data: notification, error: insertError } = await supabase
+      .from('notification_history')
+      .insert(historyRecord)
+      .select()
+      .single();
+
+    if (insertError) {
+      console.error("Error creating notification record:", insertError);
+    }
+
     // Check user notification preferences if userId is provided and type is preference-controlled
     const preferenceColumn = preferenceMap[type];
     if (userId && preferenceColumn) {
-      const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-      const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-      const supabase = createClient(supabaseUrl, supabaseServiceKey);
-
       console.log(`Checking notification preferences for user ${userId}, type: ${type}`);
 
       const { data: preferences, error: prefError } = await supabase
@@ -156,11 +167,19 @@ serve(async (req) => {
 
       if (prefError) {
         console.error("Error fetching preferences:", prefError);
-        // Continue sending if we can't fetch preferences
       } else if (preferences) {
         const prefs = preferences as Record<string, unknown>;
         if (prefs[preferenceColumn] === false) {
           console.log(`User ${userId} has disabled ${type} notifications - skipping email`);
+          
+          // Update notification status to skipped
+          if (notification?.id) {
+            await supabase
+              .from('notification_history')
+              .update({ status: 'skipped', error_message: 'User preference disabled' })
+              .eq('id', notification.id);
+          }
+
           return new Response(
             JSON.stringify({ 
               success: true, 
@@ -172,8 +191,29 @@ serve(async (req) => {
       }
     }
 
+    const resendApiKey = Deno.env.get("RESEND_API_KEY");
+    
+    if (!resendApiKey) {
+      console.log("RESEND_API_KEY not configured - logging notification only");
+      
+      // Update notification status
+      if (notification?.id) {
+        await supabase
+          .from('notification_history')
+          .update({ status: 'skipped', error_message: 'Email service not configured' })
+          .eq('id', notification.id);
+      }
+
+      return new Response(
+        JSON.stringify({ 
+          success: false, 
+          message: "Email notifications not configured. Add RESEND_API_KEY to enable." 
+        }),
+        { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     const resend = new Resend(resendApiKey);
-    const emailContent = getEmailContent(type, data);
 
     console.log(`Sending ${type} notification to ${recipientEmail}`);
 
@@ -186,12 +226,24 @@ serve(async (req) => {
 
     console.log("Email sent successfully:", emailResponse);
 
+    // Update notification status to sent
+    if (notification?.id) {
+      await supabase
+        .from('notification_history')
+        .update({ 
+          status: 'sent', 
+          sent_at: new Date().toISOString() 
+        })
+        .eq('id', notification.id);
+    }
+
     return new Response(
       JSON.stringify({ success: true, data: emailResponse }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (error: any) {
     console.error("Error sending notification:", error);
+
     return new Response(
       JSON.stringify({ error: error.message }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
