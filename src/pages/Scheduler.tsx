@@ -3,8 +3,9 @@ import { LayoutShell } from "@/components/layout/LayoutShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PlatformBadge } from "@/components/PlatformBadge";
-import { Loader2, Image as ImageIcon, X, Eye, EyeOff, Upload, ListOrdered } from "lucide-react";
+import { Loader2, Image as ImageIcon, X, Eye, EyeOff, Upload, ListOrdered, ClipboardCheck } from "lucide-react";
 import { toast } from "sonner";
+import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -18,6 +19,7 @@ import { ContentRepurposer } from "@/components/scheduler/ContentRepurposer";
 import { SentimentAnalysis } from "@/components/scheduler/SentimentAnalysis";
 import { PostQueue } from "@/components/scheduler/PostQueue";
 import { RecurrenceSettings, RecurrenceType } from "@/components/scheduler/RecurrenceSettings";
+import { ApprovalQueue } from "@/components/scheduler/ApprovalQueue";
 
 // Platform-specific character limits
 const PLATFORM_LIMITS: Record<string, { max: number; name: string }> = {
@@ -58,9 +60,11 @@ export default function Scheduler() {
   const [showPreview, setShowPreview] = useState(true);
   const [showBulkUpload, setShowBulkUpload] = useState(false);
   const [showQueue, setShowQueue] = useState(false);
+  const [showApprovals, setShowApprovals] = useState(false);
   const [isAutoScheduling, setIsAutoScheduling] = useState(false);
   const [recurrenceType, setRecurrenceType] = useState<RecurrenceType>("none");
   const [recurrenceEndDate, setRecurrenceEndDate] = useState("");
+  const [requireApproval, setRequireApproval] = useState(false);
 
   // Fetch scheduled posts
   const { data: posts = [], isLoading } = useQuery({
@@ -87,6 +91,7 @@ export default function Scheduler() {
       media_url?: string;
       recurrence_type?: RecurrenceType;
       recurrence_end_date?: string | null;
+      approval_status?: string;
     }) => {
       const { data, error } = await supabase
         .from("scheduled_posts")
@@ -99,6 +104,7 @@ export default function Scheduler() {
           status: "SCHEDULED" as PostStatus,
           recurrence_type: postData.recurrence_type || "none",
           recurrence_end_date: postData.recurrence_end_date || null,
+          approval_status: postData.approval_status || "not_required",
         })
         .select()
         .single();
@@ -202,6 +208,7 @@ export default function Scheduler() {
     setMediaPreview(null);
     setRecurrenceType("none");
     setRecurrenceEndDate("");
+    setRequireApproval(false);
   };
 
   const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -280,6 +287,7 @@ export default function Scheduler() {
         media_url: mediaUrl || undefined,
         recurrence_type: recurrenceType,
         recurrence_end_date: recurrenceEndDate ? new Date(recurrenceEndDate).toISOString() : null,
+        approval_status: requireApproval ? "pending" : "not_required",
       });
     } catch (error: any) {
       toast.error(error.message || "Failed to schedule post");
@@ -386,11 +394,38 @@ export default function Scheduler() {
             </div>
           )}
 
+          {/* Approval Queue Panel */}
+          {showApprovals && (
+            <div className="glass-panel rounded-2xl p-5">
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="font-semibold text-foreground">Approval Queue</h2>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowApprovals(false)}
+                  className="h-7 w-7 p-0"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+              <ApprovalQueue />
+            </div>
+          )}
+
           {/* Compose Form */}
           <div className="glass-panel rounded-2xl p-5">
             <div className="flex items-center justify-between mb-4">
               <h2 className="font-semibold text-foreground">Compose</h2>
               <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowApprovals(!showApprovals)}
+                  className="text-xs"
+                >
+                  <ClipboardCheck className="h-3 w-3 mr-1" />
+                  Approvals
+                </Button>
                 <Button
                   variant="outline"
                   size="sm"
@@ -520,7 +555,23 @@ export default function Scheduler() {
               onRecurrenceEndDateChange={setRecurrenceEndDate}
             />
 
-            {/* Media upload */}
+            {/* Approval Toggle */}
+            <div className="flex items-center justify-between p-3 rounded-xl bg-muted/30 border border-border">
+              <div className="flex items-center gap-2">
+                <ClipboardCheck className="h-4 w-4 text-muted-foreground" />
+                <div>
+                  <p className="text-xs font-medium">Require Approval</p>
+                  <p className="text-[10px] text-muted-foreground">
+                    Post will need approval before publishing
+                  </p>
+                </div>
+              </div>
+              <Switch
+                checked={requireApproval}
+                onCheckedChange={setRequireApproval}
+              />
+            </div>
+
             <div>
               <label className="block text-xs text-muted-foreground mb-2">Media (optional)</label>
               <input
