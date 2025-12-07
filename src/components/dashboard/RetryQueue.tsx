@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useAuth } from "@/contexts/AuthContext";
+import { useProfile } from "@/hooks/useProfile";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format } from "date-fns";
@@ -44,17 +44,17 @@ interface FailedPost {
 }
 
 export function RetryQueue() {
-  const { user } = useAuth();
+  const { profile, isLoading: profileLoading } = useProfile();
   const queryClient = useQueryClient();
   const [retryingId, setRetryingId] = useState<string | null>(null);
 
   const { data: failedPosts = [], isLoading } = useQuery({
-    queryKey: ["failed-posts", user?.id],
+    queryKey: ["failed-posts", profile?.id],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("scheduled_posts")
         .select("*")
-        .eq("user_id", user?.id)
+        .eq("user_id", profile!.id)
         .eq("status", "FAILED")
         .order("updated_at", { ascending: false })
         .limit(10);
@@ -62,7 +62,7 @@ export function RetryQueue() {
       if (error) throw error;
       return data as FailedPost[];
     },
-    enabled: !!user?.id,
+    enabled: !!profile?.id,
   });
 
   const retryMutation = useMutation({
@@ -122,7 +122,7 @@ export function RetryQueue() {
     });
   };
 
-  if (isLoading) {
+  if (profileLoading || isLoading) {
     return (
       <div className="flex items-center justify-center py-8">
         <Loader2 className="h-5 w-5 animate-spin text-primary" />
