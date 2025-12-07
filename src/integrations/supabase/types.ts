@@ -219,6 +219,57 @@ export type Database = {
           },
         ]
       }
+      notification_preferences: {
+        Row: {
+          approval_needed: boolean
+          created_at: string
+          id: string
+          post_approved: boolean
+          post_failed: boolean
+          post_rejected: boolean
+          post_sent: boolean
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          approval_needed?: boolean
+          created_at?: string
+          id?: string
+          post_approved?: boolean
+          post_failed?: boolean
+          post_rejected?: boolean
+          post_sent?: boolean
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          approval_needed?: boolean
+          created_at?: string
+          id?: string
+          post_approved?: boolean
+          post_failed?: boolean
+          post_rejected?: boolean
+          post_sent?: boolean
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_preferences_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "notification_preferences_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       post_analytics: {
         Row: {
           clicks: number | null
