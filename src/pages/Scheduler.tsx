@@ -3,13 +3,15 @@ import { LayoutShell } from "@/components/layout/LayoutShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PlatformBadge } from "@/components/PlatformBadge";
-import { Loader2, Image as ImageIcon, X, Eye, EyeOff } from "lucide-react";
+import { Loader2, Image as ImageIcon, X, Eye, EyeOff, Upload } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ContentCalendar } from "@/components/calendar/ContentCalendar";
 import { PostPreview } from "@/components/scheduler/PostPreview";
+import { BulkUpload } from "@/components/scheduler/BulkUpload";
+import { TemplateManager } from "@/components/scheduler/TemplateManager";
 
 // Platform-specific character limits
 const PLATFORM_LIMITS: Record<string, { max: number; name: string }> = {
@@ -45,7 +47,7 @@ export default function Scheduler() {
   const [mediaPreview, setMediaPreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
   const [showPreview, setShowPreview] = useState(true);
-
+  const [showBulkUpload, setShowBulkUpload] = useState(false);
   // Fetch scheduled posts
   const { data: posts = [], isLoading } = useQuery({
     queryKey: ["scheduled-posts", user?.id],
@@ -277,11 +279,39 @@ export default function Scheduler() {
             )}
           </div>
 
+          {/* Bulk Upload Panel */}
+          {showBulkUpload && (
+            <div className="glass-panel rounded-2xl p-5">
+              <BulkUpload onClose={() => setShowBulkUpload(false)} />
+            </div>
+          )}
+
           {/* Compose Form */}
           <div className="glass-panel rounded-2xl p-5">
-            <h2 className="font-semibold text-foreground mb-4">Compose</h2>
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-semibold text-foreground">Compose</h2>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowBulkUpload(!showBulkUpload)}
+                className="text-xs"
+              >
+                <Upload className="h-3 w-3 mr-1" />
+                Bulk CSV
+              </Button>
+            </div>
 
           <div className="space-y-4">
+            {/* Templates */}
+            <TemplateManager
+              currentContent={content}
+              currentPlatform={selectedPlatform}
+              onSelectTemplate={(templateContent, platform) => {
+                setContent(templateContent);
+                if (platform) setSelectedPlatform(platform as Platform);
+              }}
+            />
+
             {/* Platform selector */}
             <div>
               <label className="block text-xs text-muted-foreground mb-2">Platform</label>
