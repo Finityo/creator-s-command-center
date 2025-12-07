@@ -293,6 +293,7 @@ export type Database = {
           id: string
           media_url: string | null
           platform: Database["public"]["Enums"]["platform"]
+          queue_order: number | null
           scheduled_at: string
           social_account_id: string | null
           status: Database["public"]["Enums"]["post_status"]
@@ -306,6 +307,7 @@ export type Database = {
           id?: string
           media_url?: string | null
           platform: Database["public"]["Enums"]["platform"]
+          queue_order?: number | null
           scheduled_at: string
           social_account_id?: string | null
           status?: Database["public"]["Enums"]["post_status"]
@@ -319,6 +321,7 @@ export type Database = {
           id?: string
           media_url?: string | null
           platform?: Database["public"]["Enums"]["platform"]
+          queue_order?: number | null
           scheduled_at?: string
           social_account_id?: string | null
           status?: Database["public"]["Enums"]["post_status"]

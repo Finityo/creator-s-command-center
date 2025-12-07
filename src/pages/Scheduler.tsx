@@ -3,7 +3,7 @@ import { LayoutShell } from "@/components/layout/LayoutShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PlatformBadge } from "@/components/PlatformBadge";
-import { Loader2, Image as ImageIcon, X, Eye, EyeOff, Upload } from "lucide-react";
+import { Loader2, Image as ImageIcon, X, Eye, EyeOff, Upload, ListOrdered } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -16,6 +16,7 @@ import { HashtagSuggestions } from "@/components/scheduler/HashtagSuggestions";
 import { BestTimeRecommendations } from "@/components/scheduler/BestTimeRecommendations";
 import { ContentRepurposer } from "@/components/scheduler/ContentRepurposer";
 import { SentimentAnalysis } from "@/components/scheduler/SentimentAnalysis";
+import { PostQueue } from "@/components/scheduler/PostQueue";
 
 // Platform-specific character limits
 const PLATFORM_LIMITS: Record<string, { max: number; name: string }> = {
@@ -36,6 +37,7 @@ interface ScheduledPost {
   scheduled_at: string;
   status: PostStatus;
   created_at: string;
+  queue_order?: number;
 }
 
 export default function Scheduler() {
@@ -52,6 +54,9 @@ export default function Scheduler() {
   const [uploading, setUploading] = useState(false);
   const [showPreview, setShowPreview] = useState(true);
   const [showBulkUpload, setShowBulkUpload] = useState(false);
+  const [showQueue, setShowQueue] = useState(false);
+  const [isAutoScheduling, setIsAutoScheduling] = useState(false);
+
   // Fetch scheduled posts
   const { data: posts = [], isLoading } = useQuery({
     queryKey: ["scheduled-posts", user?.id],
@@ -139,6 +144,46 @@ export default function Scheduler() {
       toast.error(error.message || "Failed to reschedule post");
     },
   });
+
+  // Reorder posts mutation
+  const reorderPosts = useMutation({
+    mutationFn: async (reorderedPosts: { id: string; queue_order: number }[]) => {
+      for (const post of reorderedPosts) {
+        const { error } = await supabase
+          .from("scheduled_posts")
+          .update({ queue_order: post.queue_order })
+          .eq("id", post.id);
+        if (error) throw error;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["scheduled-posts"] });
+      toast.success("Queue order updated!");
+    },
+    onError: (error: any) => {
+      toast.error(error.message || "Failed to reorder posts");
+    },
+  });
+
+  const handleAutoSchedule = async () => {
+    setIsAutoScheduling(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("auto-schedule");
+      if (error) throw error;
+      queryClient.invalidateQueries({ queryKey: ["scheduled-posts"] });
+      toast.success(data.message || "Posts auto-scheduled!");
+    } catch (error: any) {
+      toast.error(error.message || "Failed to auto-schedule posts");
+    } finally {
+      setIsAutoScheduling(false);
+    }
+  };
+
+  const handleReorderPosts = (reorderedPosts: ScheduledPost[]) => {
+    reorderPosts.mutate(
+      reorderedPosts.map((p, idx) => ({ id: p.id, queue_order: idx }))
+    );
+  };
 
   const resetForm = () => {
     setContent("");
@@ -304,19 +349,54 @@ export default function Scheduler() {
             </div>
           )}
 
+          {/* Post Queue Panel */}
+          {showQueue && (
+            <div className="glass-panel rounded-2xl p-5">
+              <div className="flex items-center justify-between mb-3">
+                <h2 className="font-semibold text-foreground">Post Queue</h2>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowQueue(false)}
+                  className="h-7 w-7 p-0"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+              <PostQueue
+                posts={posts}
+                onReorder={handleReorderPosts}
+                onDelete={(id) => deletePost.mutate(id)}
+                onAutoSchedule={handleAutoSchedule}
+                isAutoScheduling={isAutoScheduling}
+              />
+            </div>
+          )}
+
           {/* Compose Form */}
           <div className="glass-panel rounded-2xl p-5">
             <div className="flex items-center justify-between mb-4">
               <h2 className="font-semibold text-foreground">Compose</h2>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowBulkUpload(!showBulkUpload)}
-                className="text-xs"
-              >
-                <Upload className="h-3 w-3 mr-1" />
-                Bulk CSV
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowQueue(!showQueue)}
+                  className="text-xs"
+                >
+                  <ListOrdered className="h-3 w-3 mr-1" />
+                  Queue
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowBulkUpload(!showBulkUpload)}
+                  className="text-xs"
+                >
+                  <Upload className="h-3 w-3 mr-1" />
+                  CSV
+                </Button>
+              </div>
             </div>
 
           <div className="space-y-4">
