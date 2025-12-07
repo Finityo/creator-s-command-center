@@ -11,6 +11,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "@/hooks/useTheme";
+import { SocialAccountsManager } from "@/components/settings/SocialAccountsManager";
 
 interface Profile {
   id: string;
@@ -228,43 +229,9 @@ export default function Settings() {
         <h1 className="text-2xl font-semibold text-foreground">Settings</h1>
 
         <div className="grid md:grid-cols-2 gap-6">
-          {/* Connect Platforms */}
+          {/* Connect Platforms - Enhanced */}
           <div className="glass-panel rounded-2xl p-5">
-            <h2 className="font-semibold text-foreground mb-2">Connected Platforms</h2>
-            <p className="text-xs text-muted-foreground mb-4">
-              Connect your accounts to schedule posts and view analytics.
-            </p>
-
-            <div className="space-y-3">
-              {allPlatforms.map((item) => (
-                <div
-                  key={item.platform}
-                  className="flex items-center justify-between p-3 rounded-xl bg-background border border-border/50"
-                >
-                  <div className="flex items-center gap-3">
-                    <PlatformBadge platform={item.displayPlatform} showLabel={false} />
-                    <div>
-                      <p className="text-sm font-medium text-foreground">{item.displayPlatform}</p>
-                      <p className="text-xs text-muted-foreground">{item.handle}</p>
-                    </div>
-                  </div>
-
-                  {item.status === "connected" ? (
-                    <div className="flex items-center gap-2">
-                      <CheckCircle className="h-4 w-4 text-emerald-400" />
-                      <Button variant="ghost" size="sm" className="text-xs">
-                        Disconnect
-                      </Button>
-                    </div>
-                  ) : (
-                    <Button variant="brand" size="sm" className="text-xs" onClick={() => handleConnect(item.platform)}>
-                      Connect
-                      <ExternalLink className="h-3 w-3" />
-                    </Button>
-                  )}
-                </div>
-              ))}
-            </div>
+            <SocialAccountsManager />
           </div>
 
           {/* Link-in-Bio Settings */}

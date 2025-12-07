@@ -340,6 +340,9 @@ export type Database = {
       }
       scheduled_posts: {
         Row: {
+          approval_status: string | null
+          approved_at: string | null
+          approved_by: string | null
           content: string
           created_at: string
           error_message: string | null
@@ -350,6 +353,7 @@ export type Database = {
           queue_order: number | null
           recurrence_end_date: string | null
           recurrence_type: string | null
+          rejection_reason: string | null
           scheduled_at: string
           social_account_id: string | null
           status: Database["public"]["Enums"]["post_status"]
@@ -357,6 +361,9 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          approval_status?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
           content: string
           created_at?: string
           error_message?: string | null
@@ -367,6 +374,7 @@ export type Database = {
           queue_order?: number | null
           recurrence_end_date?: string | null
           recurrence_type?: string | null
+          rejection_reason?: string | null
           scheduled_at: string
           social_account_id?: string | null
           status?: Database["public"]["Enums"]["post_status"]
@@ -374,6 +382,9 @@ export type Database = {
           user_id: string
         }
         Update: {
+          approval_status?: string | null
+          approved_at?: string | null
+          approved_by?: string | null
           content?: string
           created_at?: string
           error_message?: string | null
@@ -384,6 +395,7 @@ export type Database = {
           queue_order?: number | null
           recurrence_end_date?: string | null
           recurrence_type?: string | null
+          rejection_reason?: string | null
           scheduled_at?: string
           social_account_id?: string | null
           status?: Database["public"]["Enums"]["post_status"]
