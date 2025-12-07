@@ -3,7 +3,7 @@ import { LayoutShell } from "@/components/layout/LayoutShell";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { format } from "date-fns";
+import { format, isAfter, isBefore, startOfDay, endOfDay } from "date-fns";
 import { 
   Mail, 
   CheckCircle, 
@@ -15,12 +15,14 @@ import {
   SkipForward,
   Search,
   Filter,
-  X
+  X,
+  CalendarIcon
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Calendar } from "@/components/ui/calendar";
 import {
   Select,
   SelectContent,
@@ -28,6 +30,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+import { DateRange } from "react-day-picker";
 
 interface NotificationHistory {
   id: string;
@@ -80,6 +89,7 @@ export default function Notifications() {
   const [searchQuery, setSearchQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
 
   const { data: notifications = [], isLoading } = useQuery({
     queryKey: ["notification-history", user?.id],
@@ -112,9 +122,15 @@ export default function Notifications() {
       // Status filter
       const matchesStatus = statusFilter === "all" || notification.status === statusFilter;
 
-      return matchesSearch && matchesType && matchesStatus;
+      // Date range filter
+      const notificationDate = new Date(notification.created_at);
+      const matchesDateRange = 
+        (!dateRange?.from || !isBefore(notificationDate, startOfDay(dateRange.from))) &&
+        (!dateRange?.to || !isAfter(notificationDate, endOfDay(dateRange.to)));
+
+      return matchesSearch && matchesType && matchesStatus && matchesDateRange;
     });
-  }, [notifications, searchQuery, typeFilter, statusFilter]);
+  }, [notifications, searchQuery, typeFilter, statusFilter, dateRange]);
 
   const stats = {
     total: notifications.length,
@@ -123,12 +139,19 @@ export default function Notifications() {
     skipped: notifications.filter(n => n.status === 'skipped').length,
   };
 
-  const hasActiveFilters = searchQuery !== "" || typeFilter !== "all" || statusFilter !== "all";
+  const hasActiveFilters = searchQuery !== "" || typeFilter !== "all" || statusFilter !== "all" || dateRange?.from !== undefined;
 
   const clearFilters = () => {
     setSearchQuery("");
     setTypeFilter("all");
     setStatusFilter("all");
+    setDateRange(undefined);
+  };
+
+  const formatDateRange = () => {
+    if (!dateRange?.from) return "Select dates";
+    if (!dateRange.to) return format(dateRange.from, "MMM d, yyyy");
+    return `${format(dateRange.from, "MMM d")} - ${format(dateRange.to, "MMM d, yyyy")}`;
   };
 
   return (
@@ -244,6 +267,31 @@ export default function Notifications() {
                   ))}
                 </SelectContent>
               </Select>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full sm:w-[200px] justify-start text-left font-normal bg-secondary/50 border-border/50",
+                      !dateRange?.from && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {formatDateRange()}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    initialFocus
+                    mode="range"
+                    defaultMonth={dateRange?.from}
+                    selected={dateRange}
+                    onSelect={setDateRange}
+                    numberOfMonths={2}
+                    className={cn("p-3 pointer-events-auto")}
+                  />
+                </PopoverContent>
+              </Popover>
               {hasActiveFilters && (
                 <Button 
                   variant="ghost" 
