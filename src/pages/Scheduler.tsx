@@ -12,6 +12,8 @@ import { ContentCalendar } from "@/components/calendar/ContentCalendar";
 import { PostPreview } from "@/components/scheduler/PostPreview";
 import { BulkUpload } from "@/components/scheduler/BulkUpload";
 import { TemplateManager } from "@/components/scheduler/TemplateManager";
+import { HashtagSuggestions } from "@/components/scheduler/HashtagSuggestions";
+import { BestTimeRecommendations } from "@/components/scheduler/BestTimeRecommendations";
 
 // Platform-specific character limits
 const PLATFORM_LIMITS: Record<string, { max: number; name: string }> = {
@@ -350,6 +352,39 @@ export default function Scheduler() {
                 )}
               </p>
             </div>
+
+            {/* AI Hashtag Suggestions */}
+            <HashtagSuggestions
+              content={content}
+              platform={selectedPlatform}
+              onInsertHashtags={(hashtags) => setContent((prev) => prev + "\n\n" + hashtags)}
+            />
+
+            {/* Best Time Recommendations */}
+            <BestTimeRecommendations
+              content={content}
+              platform={selectedPlatform}
+              onSelectTime={(day, time) => {
+                // Calculate next occurrence of this day/time
+                const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+                const targetDayIndex = days.indexOf(day);
+                const today = new Date();
+                const todayIndex = today.getDay();
+                
+                let daysUntilTarget = targetDayIndex - todayIndex;
+                if (daysUntilTarget <= 0) daysUntilTarget += 7;
+                
+                const targetDate = new Date(today);
+                targetDate.setDate(today.getDate() + daysUntilTarget);
+                
+                const [hours, minutes] = time.split(":");
+                targetDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+                
+                // Format for datetime-local input
+                const formatted = targetDate.toISOString().slice(0, 16);
+                setScheduleDate(formatted);
+              }}
+            />
 
             {/* Date/Time */}
             <div>
