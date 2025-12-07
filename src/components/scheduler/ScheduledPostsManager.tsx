@@ -4,6 +4,7 @@ import { useProfile } from "@/hooks/useProfile";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { Loader2, Trash2 } from "lucide-react";
+import { PostStatusActions } from "./PostStatusActions";
 
 interface ScheduledPost {
   id: string;
@@ -145,19 +146,22 @@ export function ScheduledPostsManager() {
                   {post.status.toLowerCase()} • {post.platform} • {new Date(post.scheduled_at).toLocaleString()}
                 </span>
               </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                onClick={() => deletePost.mutate(post.id)}
-                disabled={deletePost.isPending}
-              >
-                {deletePost.isPending ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
-                  <Trash2 className="h-4 w-4" />
-                )}
-              </Button>
+              <div className="flex items-center gap-2">
+                <PostStatusActions post={post} />
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                  onClick={() => deletePost.mutate(post.id)}
+                  disabled={deletePost.isPending}
+                >
+                  {deletePost.isPending ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Trash2 className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
             </div>
           ))
         )}
