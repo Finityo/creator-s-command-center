@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Loader2 } from "lucide-react";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function Auth() {
   const [mode, setMode] = useState<"login" | "signup">("login");
@@ -12,17 +13,55 @@ export default function Auth() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const { user, signIn, signUp } = useAuth();
+
+  // Redirect if already logged in
+  useEffect(() => {
+    if (user) {
+      navigate("/dashboard", { replace: true });
+    }
+  }, [user, navigate]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
-    
-    // Simulate auth - in production, connect to Lovable Cloud
-    setTimeout(() => {
+
+    try {
+      if (mode === "signup") {
+        if (!displayName.trim()) {
+          toast.error("Please enter your display name");
+          setLoading(false);
+          return;
+        }
+        const { error } = await signUp(email, password, displayName);
+        if (error) {
+          if (error.message.includes("already registered")) {
+            toast.error("This email is already registered. Please log in instead.");
+          } else {
+            toast.error(error.message);
+          }
+        } else {
+          toast.success("Account created! Welcome to CreatorPilot.");
+          navigate("/dashboard");
+        }
+      } else {
+        const { error } = await signIn(email, password);
+        if (error) {
+          if (error.message.includes("Invalid login")) {
+            toast.error("Invalid email or password");
+          } else {
+            toast.error(error.message);
+          }
+        } else {
+          toast.success("Welcome back!");
+          navigate("/dashboard");
+        }
+      }
+    } catch (err: any) {
+      toast.error("Something went wrong. Please try again.");
+    } finally {
       setLoading(false);
-      toast.success(mode === "login" ? "Welcome back!" : "Account created!");
-      navigate("/dashboard");
-    }, 1000);
+    }
   }
 
   return (
@@ -70,6 +109,7 @@ export default function Auth() {
                   onChange={(e) => setDisplayName(e.target.value)}
                   placeholder="Your name"
                   required={mode === "signup"}
+                  disabled={loading}
                 />
               </div>
             )}
@@ -84,6 +124,7 @@ export default function Auth() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
                 required
+                disabled={loading}
               />
             </div>
 
@@ -97,6 +138,8 @@ export default function Auth() {
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
                 required
+                minLength={6}
+                disabled={loading}
               />
             </div>
 
@@ -106,7 +149,14 @@ export default function Auth() {
               className="w-full"
               disabled={loading}
             >
-              {loading ? "Please wait..." : mode === "login" ? "Log in" : "Create account"}
+              {loading ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Please wait...
+                </>
+              ) : (
+                mode === "login" ? "Log in" : "Create account"
+              )}
             </Button>
           </form>
 
@@ -117,6 +167,7 @@ export default function Auth() {
             <button
               onClick={() => setMode(mode === "login" ? "signup" : "login")}
               className="text-primary hover:text-primary/80 font-medium transition-colors"
+              disabled={loading}
             >
               {mode === "login" ? "Sign up" : "Log in"}
             </button>

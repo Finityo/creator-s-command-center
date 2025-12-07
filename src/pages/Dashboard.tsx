@@ -2,52 +2,123 @@ import { LayoutShell } from "@/components/layout/LayoutShell";
 import { StatCard } from "@/components/StatCard";
 import { PlatformBadge } from "@/components/PlatformBadge";
 import { Button } from "@/components/ui/button";
-import { Users, Eye, MousePointer, Clock, ArrowRight, CheckCircle, AlertCircle, Circle } from "lucide-react";
+import { Users, Eye, MousePointer, Clock, ArrowRight, CheckCircle, AlertCircle, Circle, Loader2 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
-const upcomingPosts = [
-  { platform: "X" as const, time: "Today · 3:00 PM", content: "@handle – 1 image", status: "scheduled" },
-  { platform: "Instagram" as const, time: "Today · 6:30 PM", content: "Reel – launch teaser", status: "scheduled" },
-  { platform: "OnlyFans" as const, time: "Tomorrow · 9:00 AM", content: "Subscriber post", status: "scheduled" },
-];
+type Platform = "X" | "INSTAGRAM" | "FACEBOOK" | "ONLYFANS";
 
-const connectedPlatforms = [
-  { platform: "X" as const, status: "connected" as const },
-  { platform: "Instagram" as const, status: "connected" as const },
-  { platform: "Facebook" as const, status: "pending" as const },
-  { platform: "OnlyFans" as const, status: "disconnected" as const },
-];
+const platformDisplayMap: Record<Platform, "X" | "Instagram" | "Facebook" | "OnlyFans"> = {
+  X: "X",
+  INSTAGRAM: "Instagram",
+  FACEBOOK: "Facebook",
+  ONLYFANS: "OnlyFans",
+};
 
 export default function Dashboard() {
+  const { user } = useAuth();
+
+  // Fetch user's scheduled posts
+  const { data: scheduledPosts = [], isLoading: postsLoading } = useQuery({
+    queryKey: ["upcoming-posts", user?.id],
+    queryFn: async () => {
+      const now = new Date().toISOString();
+      const { data, error } = await supabase
+        .from("scheduled_posts")
+        .select("*")
+        .eq("user_id", user?.id)
+        .gte("scheduled_at", now)
+        .order("scheduled_at", { ascending: true })
+        .limit(5);
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user?.id,
+  });
+
+  // Fetch user's social accounts
+  const { data: socialAccounts = [], isLoading: accountsLoading } = useQuery({
+    queryKey: ["social-accounts", user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("social_accounts")
+        .select("*")
+        .eq("user_id", user?.id);
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user?.id,
+  });
+
+  // Calculate stats
+  const next24hPosts = scheduledPosts.filter(post => {
+    const postDate = new Date(post.scheduled_at);
+    const in24h = new Date();
+    in24h.setHours(in24h.getHours() + 24);
+    return postDate <= in24h;
+  }).length;
+
+  const getAccountStatus = (platform: Platform): "connected" | "pending" | "disconnected" => {
+    const account = socialAccounts.find(acc => acc.platform === platform);
+    if (!account) return "disconnected";
+    return account.is_connected ? "connected" : "pending";
+  };
+
+  const connectedPlatforms: { platform: Platform; status: "connected" | "pending" | "disconnected" }[] = [
+    { platform: "X", status: getAccountStatus("X") },
+    { platform: "INSTAGRAM", status: getAccountStatus("INSTAGRAM") },
+    { platform: "FACEBOOK", status: getAccountStatus("FACEBOOK") },
+    { platform: "ONLYFANS", status: getAccountStatus("ONLYFANS") },
+  ];
+
+  const formatPostTime = (dateStr: string) => {
+    const date = new Date(dateStr);
+    const today = new Date();
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+
+    const timeStr = date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+
+    if (date.toDateString() === today.toDateString()) {
+      return `Today · ${timeStr}`;
+    } else if (date.toDateString() === tomorrow.toDateString()) {
+      return `Tomorrow · ${timeStr}`;
+    } else {
+      return `${date.toLocaleDateString()} · ${timeStr}`;
+    }
+  };
+
   return (
     <LayoutShell>
       <div className="space-y-6">
         {/* Stats Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard 
-            label="Total Followers" 
-            value="12,345" 
-            hint="+324 last 7 days" 
+            label="Connected Accounts" 
+            value={socialAccounts.filter(a => a.is_connected).length} 
+            hint="Platforms linked" 
             icon={Users}
-            trend="up"
-          />
-          <StatCard 
-            label="30d Impressions" 
-            value="67,890" 
-            hint="+12% vs prior" 
-            icon={Eye}
-            trend="up"
-          />
-          <StatCard 
-            label="Link Clicks" 
-            value="2,345" 
-            hint="Link-in-bio traffic" 
-            icon={MousePointer}
           />
           <StatCard 
             label="Scheduled Posts" 
-            value="4" 
-            hint="Next 24 hours" 
+            value={scheduledPosts.length} 
+            hint="Upcoming content" 
+            icon={Eye}
+          />
+          <StatCard 
+            label="Link Clicks" 
+            value="—" 
+            hint="Connect analytics" 
+            icon={MousePointer}
+          />
+          <StatCard 
+            label="Next 24h Posts" 
+            value={next24hPosts} 
+            hint="Scheduled across all platforms" 
             icon={Clock}
           />
         </div>
@@ -66,23 +137,36 @@ export default function Dashboard() {
               </Link>
             </div>
 
-            <div className="space-y-3">
-              {upcomingPosts.map((post, i) => (
-                <div 
-                  key={i}
-                  className="flex items-center justify-between p-3 rounded-xl bg-secondary/30 border border-border/50 hover:bg-secondary/50 transition-colors"
-                >
-                  <div className="flex items-center gap-3">
-                    <PlatformBadge platform={post.platform} size="sm" showLabel={false} />
-                    <div>
-                      <p className="text-sm text-foreground">{post.time}</p>
-                      <p className="text-xs text-muted-foreground">{post.content}</p>
+            {postsLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-5 w-5 animate-spin text-primary" />
+              </div>
+            ) : scheduledPosts.length === 0 ? (
+              <div className="text-center py-8">
+                <p className="text-sm text-muted-foreground mb-3">No scheduled posts yet</p>
+                <Link to="/scheduler">
+                  <Button variant="brand" size="sm">Schedule your first post</Button>
+                </Link>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {scheduledPosts.slice(0, 4).map((post) => (
+                  <div 
+                    key={post.id}
+                    className="flex items-center justify-between p-3 rounded-xl bg-secondary/30 border border-border/50 hover:bg-secondary/50 transition-colors"
+                  >
+                    <div className="flex items-center gap-3">
+                      <PlatformBadge platform={platformDisplayMap[post.platform as Platform]} size="sm" showLabel={false} />
+                      <div>
+                        <p className="text-sm text-foreground">{formatPostTime(post.scheduled_at)}</p>
+                        <p className="text-xs text-muted-foreground truncate max-w-[200px]">{post.content}</p>
+                      </div>
                     </div>
+                    <span className="text-xs text-primary capitalize">{post.status.toLowerCase()}</span>
                   </div>
-                  <span className="text-xs text-primary capitalize">{post.status}</span>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
 
             <Link to="/scheduler" className="block mt-4">
               <Button variant="glass" className="w-full">
@@ -102,36 +186,42 @@ export default function Dashboard() {
               </Link>
             </div>
 
-            <div className="space-y-3">
-              {connectedPlatforms.map((item, i) => (
-                <div 
-                  key={i}
-                  className="flex items-center justify-between p-3 rounded-xl bg-secondary/30 border border-border/50"
-                >
-                  <PlatformBadge platform={item.platform} />
-                  <div className="flex items-center gap-2">
-                    {item.status === "connected" && (
-                      <>
-                        <CheckCircle className="h-3.5 w-3.5 text-emerald-400" />
-                        <span className="text-xs text-emerald-400">Connected</span>
-                      </>
-                    )}
-                    {item.status === "pending" && (
-                      <>
-                        <AlertCircle className="h-3.5 w-3.5 text-amber-400" />
-                        <span className="text-xs text-amber-400">Pending</span>
-                      </>
-                    )}
-                    {item.status === "disconnected" && (
-                      <>
-                        <Circle className="h-3.5 w-3.5 text-muted-foreground" />
-                        <span className="text-xs text-muted-foreground">Connect</span>
-                      </>
-                    )}
+            {accountsLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <Loader2 className="h-5 w-5 animate-spin text-primary" />
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {connectedPlatforms.map((item, i) => (
+                  <div 
+                    key={i}
+                    className="flex items-center justify-between p-3 rounded-xl bg-secondary/30 border border-border/50"
+                  >
+                    <PlatformBadge platform={platformDisplayMap[item.platform]} />
+                    <div className="flex items-center gap-2">
+                      {item.status === "connected" && (
+                        <>
+                          <CheckCircle className="h-3.5 w-3.5 text-emerald-400" />
+                          <span className="text-xs text-emerald-400">Connected</span>
+                        </>
+                      )}
+                      {item.status === "pending" && (
+                        <>
+                          <AlertCircle className="h-3.5 w-3.5 text-amber-400" />
+                          <span className="text-xs text-amber-400">Pending</span>
+                        </>
+                      )}
+                      {item.status === "disconnected" && (
+                        <>
+                          <Circle className="h-3.5 w-3.5 text-muted-foreground" />
+                          <span className="text-xs text-muted-foreground">Connect</span>
+                        </>
+                      )}
+                    </div>
                   </div>
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
