@@ -3,12 +3,13 @@ import { LayoutShell } from "@/components/layout/LayoutShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PlatformBadge } from "@/components/PlatformBadge";
-import { Loader2, Image as ImageIcon, X } from "lucide-react";
+import { Loader2, Image as ImageIcon, X, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ContentCalendar } from "@/components/calendar/ContentCalendar";
+import { PostPreview } from "@/components/scheduler/PostPreview";
 
 // Platform-specific character limits
 const PLATFORM_LIMITS: Record<string, { max: number; name: string }> = {
@@ -43,6 +44,7 @@ export default function Scheduler() {
   const [mediaFile, setMediaFile] = useState<File | null>(null);
   const [mediaPreview, setMediaPreview] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [showPreview, setShowPreview] = useState(true);
 
   // Fetch scheduled posts
   const { data: posts = [], isLoading } = useQuery({
@@ -249,8 +251,35 @@ export default function Scheduler() {
         />
 
         {/* Compose Panel */}
-        <div className="w-full lg:w-80 glass-panel rounded-2xl p-5">
-          <h2 className="font-semibold text-foreground mb-4">Compose</h2>
+        <div className="w-full lg:w-96 space-y-4">
+          {/* Preview Toggle & Preview Panel */}
+          <div className="glass-panel rounded-2xl p-5">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-semibold text-foreground">Preview</h2>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowPreview(!showPreview)}
+                className="text-xs"
+              >
+                {showPreview ? <EyeOff className="h-4 w-4 mr-1" /> : <Eye className="h-4 w-4 mr-1" />}
+                {showPreview ? "Hide" : "Show"}
+              </Button>
+            </div>
+            {showPreview && (
+              <div className="min-h-[200px]">
+                <PostPreview
+                  platform={selectedPlatform}
+                  content={content}
+                  mediaPreview={mediaPreview}
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Compose Form */}
+          <div className="glass-panel rounded-2xl p-5">
+            <h2 className="font-semibold text-foreground mb-4">Compose</h2>
 
           <div className="space-y-4">
             {/* Platform selector */}
@@ -351,6 +380,7 @@ export default function Scheduler() {
                 "Schedule post"
               )}
             </Button>
+          </div>
           </div>
         </div>
       </div>
