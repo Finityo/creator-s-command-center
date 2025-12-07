@@ -5,6 +5,18 @@ import { Input } from "@/components/ui/input";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
+import { z } from "zod";
+
+const signInSchema = z.object({
+  email: z.string().trim().email("Please enter a valid email address"),
+  password: z.string().min(1, "Password is required"),
+});
+
+const signUpSchema = z.object({
+  email: z.string().trim().email("Please enter a valid email address"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
+  displayName: z.string().trim().min(1, "Display name is required").max(100, "Display name must be less than 100 characters"),
+});
 
 export default function Auth() {
   const [mode, setMode] = useState<"login" | "signup">("login");
@@ -24,15 +36,15 @@ export default function Auth() {
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setLoading(true);
 
     try {
       if (mode === "signup") {
-        if (!displayName.trim()) {
-          toast.error("Please enter your display name");
-          setLoading(false);
+        const validation = signUpSchema.safeParse({ email, password, displayName });
+        if (!validation.success) {
+          toast.error(validation.error.issues[0].message);
           return;
         }
+        setLoading(true);
         const { error } = await signUp(email, password, displayName);
         if (error) {
           if (error.message.includes("already registered")) {
@@ -45,6 +57,12 @@ export default function Auth() {
           navigate("/dashboard");
         }
       } else {
+        const validation = signInSchema.safeParse({ email, password });
+        if (!validation.success) {
+          toast.error(validation.error.issues[0].message);
+          return;
+        }
+        setLoading(true);
         const { error } = await signIn(email, password);
         if (error) {
           if (error.message.includes("Invalid login")) {
