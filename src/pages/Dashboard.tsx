@@ -4,11 +4,12 @@ import { PlatformBadge } from "@/components/PlatformBadge";
 import { Button } from "@/components/ui/button";
 import { Users, Eye, MousePointer, Clock, ArrowRight, CheckCircle, AlertCircle, Circle, Loader2, History, RefreshCw } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useAuth } from "@/contexts/AuthContext";
+import { useProfile } from "@/hooks/useProfile";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { PostHistory } from "@/components/dashboard/PostHistory";
 import { RetryQueue } from "@/components/dashboard/RetryQueue";
+import { DashboardCards } from "@/components/dashboard/DashboardCards";
 
 type Platform = "X" | "INSTAGRAM" | "FACEBOOK" | "ONLYFANS";
 
@@ -20,17 +21,17 @@ const platformDisplayMap: Record<Platform, "X" | "Instagram" | "Facebook" | "Onl
 };
 
 export default function Dashboard() {
-  const { user } = useAuth();
+  const { profile, isLoading: profileLoading } = useProfile();
 
   // Fetch user's scheduled posts
   const { data: scheduledPosts = [], isLoading: postsLoading } = useQuery({
-    queryKey: ["upcoming-posts", user?.id],
+    queryKey: ["upcoming-posts", profile?.id],
     queryFn: async () => {
       const now = new Date().toISOString();
       const { data, error } = await supabase
         .from("scheduled_posts")
         .select("*")
-        .eq("user_id", user?.id)
+        .eq("user_id", profile!.id)
         .gte("scheduled_at", now)
         .order("scheduled_at", { ascending: true })
         .limit(5);
@@ -38,22 +39,22 @@ export default function Dashboard() {
       if (error) throw error;
       return data;
     },
-    enabled: !!user?.id,
+    enabled: !!profile?.id,
   });
 
   // Fetch user's social accounts
   const { data: socialAccounts = [], isLoading: accountsLoading } = useQuery({
-    queryKey: ["social-accounts", user?.id],
+    queryKey: ["social-accounts", profile?.id],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("social_accounts")
         .select("*")
-        .eq("user_id", user?.id);
+        .eq("user_id", profile!.id);
 
       if (error) throw error;
       return data;
     },
-    enabled: !!user?.id,
+    enabled: !!profile?.id,
   });
 
   // Calculate stats
@@ -94,9 +95,22 @@ export default function Dashboard() {
     }
   };
 
+  if (profileLoading) {
+    return (
+      <LayoutShell>
+        <div className="flex items-center justify-center h-64">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </LayoutShell>
+    );
+  }
+
   return (
     <LayoutShell>
       <div className="space-y-6">
+        {/* Dashboard Metrics Cards */}
+        <DashboardCards />
+
         {/* Stats Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard 
