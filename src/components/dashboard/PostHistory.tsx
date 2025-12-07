@@ -1,6 +1,6 @@
 import { PlatformBadge } from "@/components/PlatformBadge";
 import { CheckCircle, XCircle, Clock, Loader2 } from "lucide-react";
-import { useAuth } from "@/contexts/AuthContext";
+import { useProfile } from "@/hooks/useProfile";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -22,15 +22,15 @@ const statusConfig: Record<PostStatus, { icon: typeof CheckCircle; label: string
 };
 
 export function PostHistory() {
-  const { user } = useAuth();
+  const { profile, isLoading: profileLoading } = useProfile();
 
   const { data: posts = [], isLoading } = useQuery({
-    queryKey: ["post-history", user?.id],
+    queryKey: ["post-history", profile?.id],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("scheduled_posts")
         .select("*")
-        .eq("user_id", user?.id)
+        .eq("user_id", profile!.id)
         .in("status", ["SENT", "FAILED"])
         .order("updated_at", { ascending: false })
         .limit(10);
@@ -38,7 +38,7 @@ export function PostHistory() {
       if (error) throw error;
       return data;
     },
-    enabled: !!user?.id,
+    enabled: !!profile?.id,
   });
 
   const formatTime = (dateStr: string) => {
@@ -56,7 +56,7 @@ export function PostHistory() {
     return date.toLocaleDateString();
   };
 
-  if (isLoading) {
+  if (profileLoading || isLoading) {
     return (
       <div className="flex items-center justify-center py-8">
         <Loader2 className="h-5 w-5 animate-spin text-primary" />
