@@ -6,15 +6,16 @@ import { Switch } from "@/components/ui/switch";
 import { ExternalLink, Save, Loader2, Upload, X, Sun, Moon } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { useTheme } from "@/hooks/useTheme";
+import { useProfile, Profile } from "@/hooks/useProfile";
 import { SocialAccountsManager } from "@/components/settings/SocialAccountsManager";
 import { TeamInvitations } from "@/components/settings/TeamInvitations";
 import { NotificationPreferences } from "@/components/settings/NotificationPreferences";
+import { useAuth } from "@/contexts/AuthContext";
 
-interface Profile {
+interface SocialAccount {
   id: string;
   display_name: string | null;
   email: string | null;
@@ -54,7 +55,8 @@ const TIMEZONES = [
 ];
 
 export default function Settings() {
-  const { user, signOut } = useAuth();
+  const { signOut } = useAuth();
+  const { profile, isLoading } = useProfile();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -70,33 +72,19 @@ export default function Settings() {
   const [avatarFile, setAvatarFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
 
-  // Fetch profile
-  const { data: profile, isLoading } = useQuery({
-    queryKey: ["profile", user?.id],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("id", user?.id)
-        .maybeSingle();
-      if (error) throw error;
-      return data as Profile | null;
-    },
-    enabled: !!user?.id,
-  });
-
   // Fetch social accounts
   const { data: socialAccounts = [] } = useQuery({
-    queryKey: ["social-accounts", user?.id],
+    queryKey: ["social-accounts", profile?.id],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("social_accounts")
         .select("id, platform, handle, is_connected")
-        .eq("user_id", user?.id);
+        .eq("user_id", profile!.id)
+        .order("platform");
       if (error) throw error;
       return data as SocialAccount[];
     },
-    enabled: !!user?.id,
+    enabled: !!profile?.id,
   });
 
   // Update form when profile loads
@@ -118,7 +106,7 @@ export default function Settings() {
       const { error } = await supabase
         .from("profiles")
         .update(data)
-        .eq("id", user?.id);
+        .eq("id", profile?.id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -152,9 +140,9 @@ export default function Settings() {
       let avatarUrl = profile?.avatar_url;
 
       // Upload new avatar if changed
-      if (avatarFile && user) {
+      if (avatarFile && profile) {
         const fileExt = avatarFile.name.split(".").pop();
-        const fileName = `${user.id}/avatar.${fileExt}`;
+        const fileName = `${profile.id}/avatar.${fileExt}`;
 
         const { error: uploadError } = await supabase.storage
           .from("post-media")
