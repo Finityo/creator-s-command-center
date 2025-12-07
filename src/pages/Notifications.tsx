@@ -1,9 +1,10 @@
 import { useState, useMemo } from "react";
 import { LayoutShell } from "@/components/layout/LayoutShell";
 import { useAuth } from "@/contexts/AuthContext";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { format, isAfter, isBefore, startOfDay, endOfDay } from "date-fns";
+import { toast } from "sonner";
 import { 
   Mail, 
   CheckCircle, 
@@ -17,7 +18,8 @@ import {
   Filter,
   X,
   CalendarIcon,
-  Download
+  Download,
+  RefreshCw
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -87,10 +89,12 @@ const statusOptions = [
 
 export default function Notifications() {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
+  const [resendingId, setResendingId] = useState<string | null>(null);
 
   const { data: notifications = [], isLoading } = useQuery({
     queryKey: ["notification-history", user?.id],
@@ -176,6 +180,31 @@ export default function Notifications() {
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
+  };
+
+  const handleResend = async (notification: NotificationHistory) => {
+    setResendingId(notification.id);
+    try {
+      const { error } = await supabase.functions.invoke('send-notification', {
+        body: {
+          type: notification.type,
+          recipientEmail: notification.recipient_email,
+          recipientName: notification.metadata?.recipientName,
+          userId: user?.id,
+          postId: notification.metadata?.postId,
+          data: notification.metadata || {},
+        },
+      });
+
+      if (error) throw error;
+      
+      toast.success("Notification resent successfully");
+      queryClient.invalidateQueries({ queryKey: ["notification-history"] });
+    } catch (error: any) {
+      toast.error(`Failed to resend: ${error.message}`);
+    } finally {
+      setResendingId(null);
+    }
   };
 
   return (
@@ -400,21 +429,38 @@ export default function Notifications() {
                           )}
                         </div>
                       </div>
-                      <div className="text-right shrink-0">
-                        <p className="text-xs text-muted-foreground">
-                          {format(new Date(notification.created_at), 'MMM d, h:mm a')}
-                        </p>
-                        <Badge 
-                          variant="outline" 
-                          className={
-                            notification.status === 'sent' ? 'border-emerald-500/50 text-emerald-400' :
-                            notification.status === 'failed' ? 'border-red-500/50 text-red-400' :
-                            notification.status === 'skipped' ? 'border-muted text-muted-foreground' :
-                            'border-amber-500/50 text-amber-400'
-                          }
-                        >
-                          {notification.status}
-                        </Badge>
+                      <div className="flex items-start gap-3 shrink-0">
+                        <div className="text-right">
+                          <p className="text-xs text-muted-foreground">
+                            {format(new Date(notification.created_at), 'MMM d, h:mm a')}
+                          </p>
+                          <Badge 
+                            variant="outline" 
+                            className={
+                              notification.status === 'sent' ? 'border-emerald-500/50 text-emerald-400' :
+                              notification.status === 'failed' ? 'border-red-500/50 text-red-400' :
+                              notification.status === 'skipped' ? 'border-muted text-muted-foreground' :
+                              'border-amber-500/50 text-amber-400'
+                            }
+                          >
+                            {notification.status}
+                          </Badge>
+                        </div>
+                        {(notification.status === 'failed' || notification.status === 'skipped') && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleResend(notification)}
+                            disabled={resendingId === notification.id}
+                            className="border-primary/50 text-primary hover:bg-primary/10"
+                          >
+                            {resendingId === notification.id ? (
+                              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                            ) : (
+                              <RefreshCw className="h-3.5 w-3.5" />
+                            )}
+                          </Button>
+                        )}
                       </div>
                     </div>
                   );
