@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.content-suggestions]
 verify_jwt = false
+
+[functions.repurpose-content]
+verify_jwt = false

@@ -14,6 +14,7 @@ import { BulkUpload } from "@/components/scheduler/BulkUpload";
 import { TemplateManager } from "@/components/scheduler/TemplateManager";
 import { HashtagSuggestions } from "@/components/scheduler/HashtagSuggestions";
 import { BestTimeRecommendations } from "@/components/scheduler/BestTimeRecommendations";
+import { ContentRepurposer } from "@/components/scheduler/ContentRepurposer";
 
 // Platform-specific character limits
 const PLATFORM_LIMITS: Record<string, { max: number; name: string }> = {
@@ -280,6 +281,20 @@ export default function Scheduler() {
               </div>
             )}
           </div>
+
+          {/* Content Repurposer */}
+          {content.trim() && selectedPlatform && (
+            <div className="glass-panel rounded-2xl p-5">
+              <ContentRepurposer
+                content={content}
+                sourcePlatform={selectedPlatform}
+                onApplyContent={(newContent, platform) => {
+                  setContent(newContent);
+                  setSelectedPlatform(platform);
+                }}
+              />
+            </div>
+          )}
 
           {/* Bulk Upload Panel */}
           {showBulkUpload && (
