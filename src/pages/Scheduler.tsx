@@ -15,6 +15,7 @@ import { TemplateManager } from "@/components/scheduler/TemplateManager";
 import { HashtagSuggestions } from "@/components/scheduler/HashtagSuggestions";
 import { BestTimeRecommendations } from "@/components/scheduler/BestTimeRecommendations";
 import { ContentRepurposer } from "@/components/scheduler/ContentRepurposer";
+import { SentimentAnalysis } from "@/components/scheduler/SentimentAnalysis";
 
 // Platform-specific character limits
 const PLATFORM_LIMITS: Record<string, { max: number; name: string }> = {
@@ -374,6 +375,11 @@ export default function Scheduler() {
               platform={selectedPlatform}
               onInsertHashtags={(hashtags) => setContent((prev) => prev + "\n\n" + hashtags)}
             />
+
+            {/* Sentiment Analysis */}
+            {content.trim() && (
+              <SentimentAnalysis content={content} />
+            )}
 
             {/* Best Time Recommendations */}
             <BestTimeRecommendations
