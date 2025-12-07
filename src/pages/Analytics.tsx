@@ -8,6 +8,8 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { EngagementChart } from "@/components/analytics/EngagementChart";
 import { FollowerGrowthChart } from "@/components/analytics/FollowerGrowthChart";
+import { CompetitorAnalysis } from "@/components/analytics/CompetitorAnalysis";
+import { ABTesting } from "@/components/analytics/ABTesting";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type Platform = "X" | "INSTAGRAM" | "FACEBOOK" | "ONLYFANS";
@@ -198,8 +200,10 @@ export default function Analytics() {
         {/* Charts Section */}
         <Tabs defaultValue="engagement" className="w-full">
           <TabsList className="mb-4">
-            <TabsTrigger value="engagement">Engagement & Metrics</TabsTrigger>
-            <TabsTrigger value="followers">Follower Growth</TabsTrigger>
+            <TabsTrigger value="engagement">Engagement</TabsTrigger>
+            <TabsTrigger value="followers">Followers</TabsTrigger>
+            <TabsTrigger value="competitors">Competitors</TabsTrigger>
+            <TabsTrigger value="abtesting">A/B Testing</TabsTrigger>
           </TabsList>
 
           <TabsContent value="engagement">
@@ -239,6 +243,18 @@ export default function Analytics() {
               ) : (
                 <FollowerGrowthChart data={followerGrowthData} />
               )}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="competitors">
+            <div className="glass-panel rounded-2xl p-5">
+              <CompetitorAnalysis />
+            </div>
+          </TabsContent>
+
+          <TabsContent value="abtesting">
+            <div className="glass-panel rounded-2xl p-5">
+              <ABTesting />
             </div>
           </TabsContent>
         </Tabs>

@@ -14,6 +14,66 @@ export type Database = {
   }
   public: {
     Tables: {
+      ab_tests: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          platform: string
+          status: string
+          updated_at: string
+          user_id: string
+          variant_a_content: string
+          variant_a_post_id: string | null
+          variant_b_content: string
+          variant_b_post_id: string | null
+          winner: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          platform: string
+          status?: string
+          updated_at?: string
+          user_id: string
+          variant_a_content: string
+          variant_a_post_id?: string | null
+          variant_b_content: string
+          variant_b_post_id?: string | null
+          winner?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          platform?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+          variant_a_content?: string
+          variant_a_post_id?: string | null
+          variant_b_content?: string
+          variant_b_post_id?: string | null
+          winner?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ab_tests_variant_a_post_id_fkey"
+            columns: ["variant_a_post_id"]
+            isOneToOne: false
+            referencedRelation: "scheduled_posts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ab_tests_variant_b_post_id_fkey"
+            columns: ["variant_b_post_id"]
+            isOneToOne: false
+            referencedRelation: "scheduled_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       analytics_snapshots: {
         Row: {
           account_id: string | null
@@ -71,6 +131,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      competitor_accounts: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          display_name: string | null
+          handle: string
+          id: string
+          notes: string | null
+          platform: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          handle: string
+          id?: string
+          notes?: string | null
+          platform: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          handle?: string
+          id?: string
+          notes?: string | null
+          platform?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       link_items: {
         Row: {
