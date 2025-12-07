@@ -1,15 +1,23 @@
-import { useState, useEffect, useRef, ChangeEvent } from "react";
+import { useState, useRef, ChangeEvent, useMemo } from "react";
 import { LayoutShell } from "@/components/layout/LayoutShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PlatformBadge } from "@/components/PlatformBadge";
-import { ChevronLeft, ChevronRight, Plus, Loader2, Trash2, Image as ImageIcon, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Loader2, Trash2, Image as ImageIcon, X } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
+// Platform-specific character limits
+const PLATFORM_LIMITS: Record<string, { max: number; name: string }> = {
+  X: { max: 280, name: "X (Twitter)" },
+  INSTAGRAM: { max: 2200, name: "Instagram" },
+  FACEBOOK: { max: 63206, name: "Facebook" },
+  ONLYFANS: { max: 5000, name: "OnlyFans" },
+};
 
 type Platform = "X" | "INSTAGRAM" | "FACEBOOK" | "ONLYFANS";
 type PostStatus = "DRAFT" | "SCHEDULED" | "SENT" | "FAILED";
@@ -154,6 +162,13 @@ export default function Scheduler() {
     return publicUrl;
   };
 
+  const currentLimit = useMemo(() => 
+    PLATFORM_LIMITS[selectedPlatform] || { max: 5000, name: "Post" }, 
+    [selectedPlatform]
+  );
+  const isOverLimit = content.length > currentLimit.max;
+  const remainingChars = currentLimit.max - content.length;
+
   const handleSchedule = async () => {
     if (!selectedPlatform || !content || !scheduleDate) {
       toast.error("Please fill in all required fields");
@@ -162,6 +177,11 @@ export default function Scheduler() {
 
     if (!user) {
       toast.error("You must be logged in");
+      return;
+    }
+
+    if (isOverLimit) {
+      toast.error(`Content exceeds ${currentLimit.name} limit of ${currentLimit.max} characters`);
       return;
     }
 
@@ -347,10 +367,20 @@ export default function Scheduler() {
                 value={content}
                 onChange={(e) => setContent(e.target.value)}
                 rows={5}
-                className="w-full px-3 py-2 rounded-xl bg-background border border-border text-foreground text-sm resize-none focus:outline-none focus:ring-2 focus:ring-ring"
+                className={`w-full px-3 py-2 rounded-xl bg-background border text-foreground text-sm resize-none focus:outline-none focus:ring-2 focus:ring-ring ${
+                  isOverLimit ? "border-destructive focus:ring-destructive" : "border-border"
+                }`}
                 placeholder="Write your caption and content here..."
               />
-              <p className="text-[10px] text-muted-foreground mt-1">{content.length} characters</p>
+              <p className={`text-[10px] mt-1 ${isOverLimit ? "text-destructive font-medium" : "text-muted-foreground"}`}>
+                {selectedPlatform ? (
+                  remainingChars >= 0 
+                    ? `${remainingChars} characters remaining (${currentLimit.name}: ${currentLimit.max} max)`
+                    : `${Math.abs(remainingChars)} characters over limit (${currentLimit.name}: ${currentLimit.max} max)`
+                ) : (
+                  `${content.length} characters`
+                )}
+              </p>
             </div>
 
             {/* Date/Time */}
