@@ -2,7 +2,7 @@ import { useState } from "react";
 import { LayoutShell } from "@/components/layout/LayoutShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { ExternalLink, Copy, Edit, Trash2, Plus, GripVertical, X, Loader2, Check } from "lucide-react";
+import { ExternalLink, Copy, Plus, Loader2, Check } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -13,6 +13,22 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { SortableLinkItem } from "@/components/links/SortableLinkItem";
 
 interface LinkItem {
   id: string;
@@ -36,6 +52,13 @@ export default function LinkPage() {
   const [editingLink, setEditingLink] = useState<LinkItem | null>(null);
   const [isAddOpen, setIsAddOpen] = useState(false);
   const [newLink, setNewLink] = useState({ label: "", url: "", icon: "🔗" });
+
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
 
   // Fetch profile
   const { data: profile } = useQuery({
@@ -125,31 +148,33 @@ export default function LinkPage() {
     onError: (error: any) => toast.error(error.message),
   });
 
-  // Reorder links mutation
+  // Reorder links mutation for drag and drop
   const reorderLinks = useMutation({
-    mutationFn: async ({ id, direction }: { id: string; direction: "up" | "down" }) => {
-      const currentIndex = links.findIndex(l => l.id === id);
-      if (currentIndex === -1) return;
-      
-      const targetIndex = direction === "up" ? currentIndex - 1 : currentIndex + 1;
-      if (targetIndex < 0 || targetIndex >= links.length) return;
-
-      const currentLink = links[currentIndex];
-      const targetLink = links[targetIndex];
-
-      // Swap sort orders
-      const updates = [
-        supabase.from("link_items").update({ sort_order: targetLink.sort_order }).eq("id", currentLink.id),
-        supabase.from("link_items").update({ sort_order: currentLink.sort_order }).eq("id", targetLink.id),
-      ];
-
+    mutationFn: async (newOrder: LinkItem[]) => {
+      const updates = newOrder.map((link, index) => 
+        supabase.from("link_items").update({ sort_order: index }).eq("id", link.id)
+      );
       await Promise.all(updates);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["link-items"] });
     },
     onError: (error: any) => toast.error(error.message),
   });
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
+
+    if (over && active.id !== over.id) {
+      const oldIndex = links.findIndex((link) => link.id === active.id);
+      const newIndex = links.findIndex((link) => link.id === over.id);
+
+      const newOrder = arrayMove(links, oldIndex, newIndex);
+      
+      // Optimistically update the UI
+      queryClient.setQueryData(["link-items", user?.id], newOrder);
+      
+      // Persist to database
+      reorderLinks.mutate(newOrder);
+    }
+  };
 
   const copyLink = () => {
     const slug = profile?.link_page_slug || "your-page";
@@ -171,7 +196,7 @@ export default function LinkPage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-semibold text-foreground">Link Page</h1>
-            <p className="text-sm text-muted-foreground">Preview and edit your link-in-bio page</p>
+            <p className="text-sm text-muted-foreground">Drag to reorder, click to edit</p>
           </div>
           <div className="flex items-center gap-2">
             <Button variant="glass" size="sm" onClick={copyLink}>
@@ -245,7 +270,7 @@ export default function LinkPage() {
           </div>
         </div>
 
-        {/* Edit Links */}
+        {/* Edit Links with Drag & Drop */}
         <div className="glass-panel rounded-2xl p-5">
           <div className="flex items-center justify-between mb-4">
             <h2 className="font-semibold text-foreground">Your Links</h2>
@@ -264,58 +289,27 @@ export default function LinkPage() {
               No links yet. Click "Add Link" to get started.
             </p>
           ) : (
-            <div className="space-y-2">
-              {links.map((link, index) => (
-                <div
-                  key={link.id}
-                  className={`flex items-center justify-between p-3 rounded-xl bg-background border transition-colors ${
-                    link.is_active ? "border-border/50 hover:border-primary/30" : "border-border/30 opacity-60"
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="flex flex-col gap-0.5">
-                      <button 
-                        onClick={() => reorderLinks.mutate({ id: link.id, direction: "up" })}
-                        disabled={index === 0}
-                        className="text-muted-foreground hover:text-foreground disabled:opacity-30"
-                      >
-                        <GripVertical className="h-3 w-3" />
-                      </button>
-                      <button 
-                        onClick={() => reorderLinks.mutate({ id: link.id, direction: "down" })}
-                        disabled={index === links.length - 1}
-                        className="text-muted-foreground hover:text-foreground disabled:opacity-30"
-                      >
-                        <GripVertical className="h-3 w-3" />
-                      </button>
-                    </div>
-                    <span className="text-xl">{link.icon || "🔗"}</span>
-                    <div>
-                      <p className="text-sm font-medium text-foreground">{link.label}</p>
-                      <p className="text-xs text-muted-foreground truncate max-w-[200px]">{link.url}</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      className="h-8 w-8"
-                      onClick={() => setEditingLink(link)}
-                    >
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="icon" 
-                      className="h-8 w-8 text-destructive hover:text-destructive"
-                      onClick={() => deleteLink.mutate(link.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
+            <DndContext
+              sensors={sensors}
+              collisionDetection={closestCenter}
+              onDragEnd={handleDragEnd}
+            >
+              <SortableContext
+                items={links.map(l => l.id)}
+                strategy={verticalListSortingStrategy}
+              >
+                <div className="space-y-2">
+                  {links.map((link) => (
+                    <SortableLinkItem
+                      key={link.id}
+                      link={link}
+                      onEdit={setEditingLink}
+                      onDelete={(id) => deleteLink.mutate(id)}
+                    />
+                  ))}
                 </div>
-              ))}
-            </div>
+              </SortableContext>
+            </DndContext>
           )}
         </div>
       </div>

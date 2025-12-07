@@ -2,11 +2,12 @@ import { LayoutShell } from "@/components/layout/LayoutShell";
 import { StatCard } from "@/components/StatCard";
 import { PlatformBadge } from "@/components/PlatformBadge";
 import { Button } from "@/components/ui/button";
-import { Users, Eye, MousePointer, Clock, ArrowRight, CheckCircle, AlertCircle, Circle, Loader2 } from "lucide-react";
+import { Users, Eye, MousePointer, Clock, ArrowRight, CheckCircle, AlertCircle, Circle, Loader2, History } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { PostHistory } from "@/components/dashboard/PostHistory";
 
 type Platform = "X" | "INSTAGRAM" | "FACEBOOK" | "ONLYFANS";
 
@@ -225,6 +226,18 @@ export default function Dashboard() {
           </div>
         </div>
 
+        {/* Post History Section */}
+        <div className="glass-panel rounded-2xl p-5">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-2">
+              <History className="h-5 w-5 text-primary" />
+              <h2 className="font-semibold text-foreground">Post History</h2>
+            </div>
+            <span className="text-xs text-muted-foreground">Recent activity</span>
+          </div>
+          <PostHistory />
+        </div>
+
         {/* Quick Actions */}
         <div className="glass-panel rounded-2xl p-5">
           <h2 className="font-semibold text-foreground mb-4">Quick Actions</h2>
@@ -247,7 +260,7 @@ export default function Dashboard() {
                 </div>
                 <div className="text-left">
                   <p className="text-sm font-medium">View Streams</p>
-                  <p className="text-xs text-muted-foreground">Monitor activity</p>
+                  <p className="text-xs text-muted-foreground">Discover trends</p>
                 </div>
               </Button>
             </Link>
