@@ -6,6 +6,90 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+interface ScheduledPost {
+  id: string;
+  platform: 'X' | 'INSTAGRAM' | 'FACEBOOK' | 'ONLYFANS';
+  content: string;
+  media_url?: string;
+  scheduled_at: string;
+  user_id: string;
+}
+
+interface PublishResult {
+  id: string;
+  status: 'SENT' | 'FAILED';
+  error?: string;
+}
+
+// Get the base URL for edge functions
+function getEdgeFunctionUrl(functionName: string): string {
+  const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+  return `${supabaseUrl}/functions/v1/${functionName}`;
+}
+
+// Call a platform-specific publishing function
+async function callPublishFunction(
+  functionName: string, 
+  post: ScheduledPost,
+  serviceKey: string
+): Promise<{ success: boolean; error?: string }> {
+  const url = getEdgeFunctionUrl(functionName);
+  
+  console.log(`Calling ${functionName} for post ${post.id}`);
+  
+  try {
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${serviceKey}`,
+      },
+      body: JSON.stringify({
+        postId: post.id,
+        content: post.content,
+        mediaUrl: post.media_url,
+        scheduledAt: post.scheduled_at,
+      }),
+    });
+
+    const responseText = await response.text();
+    console.log(`${functionName} response status: ${response.status}`);
+    console.log(`${functionName} response: ${responseText}`);
+
+    if (!response.ok) {
+      const errorData = JSON.parse(responseText);
+      return { success: false, error: errorData.error || `HTTP ${response.status}` };
+    }
+
+    const result = JSON.parse(responseText);
+    return { success: result.success !== false, error: result.error };
+  } catch (error: any) {
+    console.error(`Error calling ${functionName}:`, error);
+    return { success: false, error: error.message };
+  }
+}
+
+// Route post to the appropriate publishing function
+async function publishPost(post: ScheduledPost, serviceKey: string): Promise<{ success: boolean; error?: string }> {
+  switch (post.platform) {
+    case 'X':
+      return await callPublishFunction('publish-to-twitter', post, serviceKey);
+    
+    case 'INSTAGRAM':
+      return await callPublishFunction('publish-to-instagram', post, serviceKey);
+    
+    case 'FACEBOOK':
+      return await callPublishFunction('publish-to-facebook', post, serviceKey);
+    
+    case 'ONLYFANS':
+      return await callPublishFunction('publish-to-onlyfans', post, serviceKey);
+    
+    default:
+      console.error(`Unknown platform: ${post.platform}`);
+      return { success: false, error: `Unsupported platform: ${post.platform}` };
+  }
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -43,50 +127,32 @@ serve(async (req) => {
       );
     }
 
-    const results = [];
+    const results: PublishResult[] = [];
 
-    for (const post of duePosts) {
+    for (const post of duePosts as ScheduledPost[]) {
       console.log(`Processing post ${post.id} for platform ${post.platform}`);
       
       try {
-        // Here you would integrate with actual social media APIs
-        // For now, we'll simulate posting and mark as sent
+        // Call the appropriate platform publishing function
+        const publishResult = await publishPost(post, supabaseServiceKey);
         
-        // TODO: Integrate with platform APIs
-        // - X/Twitter API
-        // - Instagram API
-        // - Facebook API
-        // - OnlyFans API
-        
-        // Simulate some processing time
-        await new Promise(resolve => setTimeout(resolve, 100));
-        
-        // Mark as sent
-        const { error: updateError } = await supabase
-          .from('scheduled_posts')
-          .update({ 
-            status: 'SENT',
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', post.id);
-
-        if (updateError) {
-          console.error(`Error updating post ${post.id}:`, updateError);
+        if (publishResult.success) {
+          console.log(`Successfully published post ${post.id} to ${post.platform}`);
+          results.push({ id: post.id, status: 'SENT' });
+        } else {
+          console.error(`Failed to publish post ${post.id}: ${publishResult.error}`);
           
-          // Mark as failed
+          // Update post status to FAILED
           await supabase
             .from('scheduled_posts')
             .update({ 
               status: 'FAILED',
-              error_message: updateError.message,
+              error_message: publishResult.error || 'Unknown publishing error',
               updated_at: new Date().toISOString()
             })
             .eq('id', post.id);
           
-          results.push({ id: post.id, status: 'FAILED', error: updateError.message });
-        } else {
-          console.log(`Successfully processed post ${post.id}`);
-          results.push({ id: post.id, status: 'SENT' });
+          results.push({ id: post.id, status: 'FAILED', error: publishResult.error });
         }
       } catch (postError: any) {
         console.error(`Error processing post ${post.id}:`, postError);

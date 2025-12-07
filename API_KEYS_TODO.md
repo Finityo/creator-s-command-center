@@ -13,6 +13,8 @@ This file tracks API keys that need to be configured for full functionality.
 | INSTAGRAM_ACCOUNT_ID | Instagram Business Account ID | ⏳ Pending |
 | FACEBOOK_ACCESS_TOKEN | Facebook Page Access Token | ⏳ Pending |
 | FACEBOOK_PAGE_ID | Facebook Page ID for posting | ⏳ Pending |
+| ONLYFANS_API_KEY | OnlyFans API key (requires partnership) | ⏳ Pending |
+| ONLYFANS_USER_ID | OnlyFans User ID | ⏳ Pending |
 
 ## Priority 2 - Enhanced Features
 | API Key | Purpose | Status |
