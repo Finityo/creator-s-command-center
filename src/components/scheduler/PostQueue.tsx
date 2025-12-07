@@ -21,6 +21,7 @@ import { GripVertical, Trash2, Calendar, Clock, Sparkles, Loader2 } from "lucide
 import { PlatformBadge } from "@/components/PlatformBadge";
 import { format } from "date-fns";
 import { PostStatusActions } from "./PostStatusActions";
+import { MarkSentAction } from "./MarkSentAction";
 
 type DbPlatform = "X" | "INSTAGRAM" | "FACEBOOK" | "ONLYFANS";
 type DisplayPlatform = "X" | "Instagram" | "Facebook" | "OnlyFans";
@@ -118,6 +119,7 @@ function SortablePostItem({ post, onDelete }: SortablePostItemProps) {
 
       <div className="flex items-center gap-2">
         <PostStatusActions post={post} />
+        <MarkSentAction post={post} />
         <button
           onClick={() => onDelete(post.id)}
           className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 opacity-0 group-hover:opacity-100 transition-opacity"
