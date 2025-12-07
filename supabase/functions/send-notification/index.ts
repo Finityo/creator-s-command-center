@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { Resend } from "https://esm.sh/resend@2.0.0";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -10,8 +11,18 @@ interface NotificationRequest {
   type: 'approval_needed' | 'post_approved' | 'post_rejected' | 'team_invitation' | 'post_sent' | 'post_failed';
   recipientEmail: string;
   recipientName?: string;
+  userId?: string;
   data: Record<string, any>;
 }
+
+// Map notification types to preference column names
+const preferenceMap: Record<string, string> = {
+  'approval_needed': 'approval_needed',
+  'post_approved': 'post_approved',
+  'post_rejected': 'post_rejected',
+  'post_sent': 'post_sent',
+  'post_failed': 'post_failed',
+};
 
 const getEmailContent = (type: string, data: Record<string, any>) => {
   switch (type) {
@@ -119,8 +130,7 @@ serve(async (req) => {
       );
     }
 
-    const resend = new Resend(resendApiKey);
-    const { type, recipientEmail, recipientName, data }: NotificationRequest = await req.json();
+    const { type, recipientEmail, recipientName, userId, data }: NotificationRequest = await req.json();
 
     if (!type || !recipientEmail) {
       return new Response(
@@ -129,6 +139,40 @@ serve(async (req) => {
       );
     }
 
+    // Check user notification preferences if userId is provided and type is preference-controlled
+    const preferenceColumn = preferenceMap[type];
+    if (userId && preferenceColumn) {
+      const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+      const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+      const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+      console.log(`Checking notification preferences for user ${userId}, type: ${type}`);
+
+      const { data: preferences, error: prefError } = await supabase
+        .from('notification_preferences')
+        .select('*')
+        .eq('user_id', userId)
+        .maybeSingle();
+
+      if (prefError) {
+        console.error("Error fetching preferences:", prefError);
+        // Continue sending if we can't fetch preferences
+      } else if (preferences) {
+        const prefs = preferences as Record<string, unknown>;
+        if (prefs[preferenceColumn] === false) {
+          console.log(`User ${userId} has disabled ${type} notifications - skipping email`);
+          return new Response(
+            JSON.stringify({ 
+              success: true, 
+              message: `Notification skipped - user has disabled ${type} notifications` 
+            }),
+            { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+      }
+    }
+
+    const resend = new Resend(resendApiKey);
     const emailContent = getEmailContent(type, data);
 
     console.log(`Sending ${type} notification to ${recipientEmail}`);
