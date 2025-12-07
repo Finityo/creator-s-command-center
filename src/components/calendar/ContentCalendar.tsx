@@ -4,6 +4,7 @@ import { HTML5Backend } from "react-dnd-html5-backend";
 import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight, Loader2, Calendar, CalendarDays } from "lucide-react";
 import { CalendarDay } from "./CalendarDay";
+import { CalendarExport } from "./CalendarExport";
 
 interface Post {
   id: string;
@@ -137,7 +138,8 @@ export function ContentCalendar({
         <div className="flex items-center justify-between mb-4">
           <h2 className="font-semibold text-foreground">Content Calendar</h2>
           <div className="flex items-center gap-2">
-            <p className="text-xs text-muted-foreground mr-2">Drag posts to reschedule</p>
+            <p className="text-xs text-muted-foreground mr-2 hidden sm:block">Drag posts to reschedule</p>
+            <CalendarExport posts={posts} />
             <div className="flex rounded-lg border border-border overflow-hidden">
               <button
                 onClick={() => setViewMode("month")}
