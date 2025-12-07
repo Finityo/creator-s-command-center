@@ -13,9 +13,10 @@ interface Post {
 
 interface CalendarDayProps {
   day: number;
+  date?: Date;
   isToday: boolean;
   posts: Post[];
-  onDrop: (postId: string, day: number) => void;
+  onDrop: (postId: string) => void;
   onDelete: (postId: string) => void;
 }
 
@@ -23,7 +24,7 @@ export function CalendarDay({ day, isToday, posts, onDrop, onDelete }: CalendarD
   const [{ isOver, canDrop }, drop] = useDrop({
     accept: "post",
     drop: (item: { id: string }) => {
-      onDrop(item.id, day);
+      onDrop(item.id);
     },
     collect: (monitor) => ({
       isOver: monitor.isOver(),
