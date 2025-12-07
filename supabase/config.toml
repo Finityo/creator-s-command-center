@@ -2,3 +2,6 @@ project_id = "hjaedchzihnrhssukpwd"
 
 [functions.process-scheduled-posts]
 verify_jwt = false
+
+[functions.content-suggestions]
+verify_jwt = false
