@@ -16,7 +16,8 @@ import {
   Search,
   Filter,
   X,
-  CalendarIcon
+  CalendarIcon,
+  Download
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -154,6 +155,29 @@ export default function Notifications() {
     return `${format(dateRange.from, "MMM d")} - ${format(dateRange.to, "MMM d, yyyy")}`;
   };
 
+  const exportToCSV = () => {
+    const headers = ["Date", "Subject", "Type", "Recipient", "Status", "Error"];
+    const rows = filteredNotifications.map(n => [
+      format(new Date(n.created_at), "yyyy-MM-dd HH:mm:ss"),
+      `"${n.subject.replace(/"/g, '""')}"`,
+      n.type,
+      n.recipient_email,
+      n.status,
+      n.error_message ? `"${n.error_message.replace(/"/g, '""')}"` : ""
+    ]);
+
+    const csvContent = [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `notifications-${format(new Date(), "yyyy-MM-dd")}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   return (
     <LayoutShell>
       <div className="space-y-6">
@@ -229,6 +253,16 @@ export default function Notifications() {
                 </CardTitle>
                 <CardDescription>Email notifications sent from your account</CardDescription>
               </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={exportToCSV}
+                disabled={filteredNotifications.length === 0}
+                className="shrink-0"
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Export CSV
+              </Button>
             </div>
 
             {/* Filters */}
