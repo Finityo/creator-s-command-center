@@ -17,3 +17,18 @@ verify_jwt = true
 
 [functions.process-recurring-posts]
 verify_jwt = false
+
+[functions.send-notification]
+verify_jwt = false
+
+[functions.publish-to-twitter]
+verify_jwt = false
+
+[functions.publish-to-instagram]
+verify_jwt = false
+
+[functions.publish-to-facebook]
+verify_jwt = false
+
+[functions.publish-to-onlyfans]
+verify_jwt = false
