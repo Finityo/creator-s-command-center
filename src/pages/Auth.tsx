@@ -1,0 +1,128 @@
+import { useState } from "react";
+import { useNavigate, Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { ArrowLeft } from "lucide-react";
+import { toast } from "sonner";
+
+export default function Auth() {
+  const [mode, setMode] = useState<"login" | "signup">("login");
+  const [email, setEmail] = useState("");
+  const [displayName, setDisplayName] = useState("");
+  const [password, setPassword] = useState("");
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setLoading(true);
+    
+    // Simulate auth - in production, connect to Lovable Cloud
+    setTimeout(() => {
+      setLoading(false);
+      toast.success(mode === "login" ? "Welcome back!" : "Account created!");
+      navigate("/dashboard");
+    }, 1000);
+  }
+
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-background px-4">
+      {/* Background gradient */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-accent/10 rounded-full blur-3xl" />
+      </div>
+
+      <div className="w-full max-w-sm relative z-10 animate-scale-in">
+        {/* Back button */}
+        <Link to="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-6 transition-colors">
+          <ArrowLeft className="h-4 w-4" />
+          Back to home
+        </Link>
+
+        <div className="glass-panel rounded-3xl p-6 shadow-elevated">
+          {/* Logo */}
+          <div className="flex items-center gap-3 mb-6">
+            <div className="h-10 w-10 rounded-2xl gradient-brand flex items-center justify-center shadow-glow">
+              <span className="text-foreground font-bold text-lg">CP</span>
+            </div>
+            <div>
+              <h1 className="text-xl font-semibold text-foreground">
+                {mode === "login" ? "Welcome back" : "Create account"}
+              </h1>
+              <p className="text-xs text-muted-foreground">
+                {mode === "login" 
+                  ? "Log in to your control center" 
+                  : "Start managing your content"
+                }
+              </p>
+            </div>
+          </div>
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {mode === "signup" && (
+              <div>
+                <label className="block mb-1.5 text-sm text-muted-foreground">
+                  Display name
+                </label>
+                <Input
+                  value={displayName}
+                  onChange={(e) => setDisplayName(e.target.value)}
+                  placeholder="Your name"
+                  required={mode === "signup"}
+                />
+              </div>
+            )}
+
+            <div>
+              <label className="block mb-1.5 text-sm text-muted-foreground">
+                Email
+              </label>
+              <Input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@example.com"
+                required
+              />
+            </div>
+
+            <div>
+              <label className="block mb-1.5 text-sm text-muted-foreground">
+                Password
+              </label>
+              <Input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                required
+              />
+            </div>
+
+            <Button 
+              type="submit" 
+              variant="brand" 
+              className="w-full"
+              disabled={loading}
+            >
+              {loading ? "Please wait..." : mode === "login" ? "Log in" : "Create account"}
+            </Button>
+          </form>
+
+          <div className="mt-5 pt-5 border-t border-border flex items-center justify-between text-xs">
+            <span className="text-muted-foreground">
+              {mode === "login" ? "Need an account?" : "Already have an account?"}
+            </span>
+            <button
+              onClick={() => setMode(mode === "login" ? "signup" : "login")}
+              className="text-primary hover:text-primary/80 font-medium transition-colors"
+            >
+              {mode === "login" ? "Sign up" : "Log in"}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
