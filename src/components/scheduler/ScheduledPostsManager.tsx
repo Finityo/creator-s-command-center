@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { Loader2, Trash2 } from "lucide-react";
 import { PostStatusActions } from "./PostStatusActions";
+import { MarkSentAction } from "./MarkSentAction";
 
 interface ScheduledPost {
   id: string;
@@ -12,7 +13,7 @@ interface ScheduledPost {
   social_account_id: string | null;
   content: string;
   scheduled_at: string;
-  status: string;
+  status: "DRAFT" | "SCHEDULED" | "SENT" | "FAILED";
   platform: string;
 }
 
@@ -148,6 +149,7 @@ export function ScheduledPostsManager() {
               </div>
               <div className="flex items-center gap-2">
                 <PostStatusActions post={post} />
+                <MarkSentAction post={post} />
                 <Button
                   variant="ghost"
                   size="icon"
