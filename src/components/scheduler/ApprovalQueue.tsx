@@ -45,11 +45,41 @@ interface PendingPost {
   created_at: string;
 }
 
+// Helper to send notification email
+const sendNotificationEmail = async (
+  type: 'approval_needed' | 'post_approved' | 'post_rejected',
+  recipientEmail: string,
+  data: Record<string, any>
+) => {
+  try {
+    await supabase.functions.invoke("send-notification", {
+      body: { type, recipientEmail, data },
+    });
+  } catch (error) {
+    console.warn("Failed to send notification email:", error);
+  }
+};
+
 export function ApprovalQueue() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [rejectingPost, setRejectingPost] = useState<PendingPost | null>(null);
   const [rejectionReason, setRejectionReason] = useState("");
+
+  // Fetch user profile for email
+  const { data: profile } = useQuery({
+    queryKey: ["profile", user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("email, display_name")
+        .eq("id", user?.id)
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user?.id,
+  });
 
   // Fetch pending posts
   const { data: pendingPosts = [], isLoading } = useQuery({
@@ -70,7 +100,7 @@ export function ApprovalQueue() {
 
   // Approve post mutation
   const approveMutation = useMutation({
-    mutationFn: async (postId: string) => {
+    mutationFn: async (post: PendingPost) => {
       const { error } = await supabase
         .from("scheduled_posts")
         .update({
@@ -78,9 +108,18 @@ export function ApprovalQueue() {
           approved_by: user?.id,
           approved_at: new Date().toISOString(),
         })
-        .eq("id", postId);
+        .eq("id", post.id);
 
       if (error) throw error;
+
+      // Send approval notification email
+      if (profile?.email) {
+        await sendNotificationEmail('post_approved', profile.email, {
+          platform: post.platform,
+          scheduledAt: post.scheduled_at,
+          content: post.content,
+        });
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["pending-approvals"] });
@@ -94,7 +133,7 @@ export function ApprovalQueue() {
 
   // Reject post mutation
   const rejectMutation = useMutation({
-    mutationFn: async ({ postId, reason }: { postId: string; reason: string }) => {
+    mutationFn: async ({ post, reason }: { post: PendingPost; reason: string }) => {
       const { error } = await supabase
         .from("scheduled_posts")
         .update({
@@ -103,9 +142,19 @@ export function ApprovalQueue() {
           approved_by: user?.id,
           approved_at: new Date().toISOString(),
         })
-        .eq("id", postId);
+        .eq("id", post.id);
 
       if (error) throw error;
+
+      // Send rejection notification email
+      if (profile?.email) {
+        await sendNotificationEmail('post_rejected', profile.email, {
+          platform: post.platform,
+          scheduledAt: post.scheduled_at,
+          content: post.content,
+          reason,
+        });
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["pending-approvals"] });
@@ -122,7 +171,7 @@ export function ApprovalQueue() {
   const handleReject = () => {
     if (!rejectingPost) return;
     rejectMutation.mutate({
-      postId: rejectingPost.id,
+      post: rejectingPost,
       reason: rejectionReason || "No reason provided",
     });
   };
@@ -184,7 +233,7 @@ export function ApprovalQueue() {
             <div className="flex items-center gap-2">
               <Button
                 size="sm"
-                onClick={() => approveMutation.mutate(post.id)}
+                onClick={() => approveMutation.mutate(post)}
                 disabled={approveMutation.isPending}
                 className="flex-1 bg-emerald-600 hover:bg-emerald-700"
               >

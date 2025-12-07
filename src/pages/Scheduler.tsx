@@ -82,6 +82,21 @@ export default function Scheduler() {
     enabled: !!user?.id,
   });
 
+  // Fetch user profile for email notifications
+  const { data: profile } = useQuery({
+    queryKey: ["profile", user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("email, display_name")
+        .eq("id", user?.id)
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user?.id,
+  });
+
   // Create post mutation
   const createPost = useMutation({
     mutationFn: async (postData: {
@@ -110,6 +125,26 @@ export default function Scheduler() {
         .single();
 
       if (error) throw error;
+
+      // Send notification if approval is required
+      if (postData.approval_status === "pending" && profile?.email) {
+        try {
+          await supabase.functions.invoke("send-notification", {
+            body: {
+              type: "approval_needed",
+              recipientEmail: profile.email,
+              data: {
+                platform: postData.platform,
+                scheduledAt: postData.scheduled_at,
+                content: postData.content,
+              },
+            },
+          });
+        } catch (notifyError) {
+          console.warn("Failed to send approval notification:", notifyError);
+        }
+      }
+
       return data;
     },
     onSuccess: () => {
