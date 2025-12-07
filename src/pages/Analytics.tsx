@@ -10,6 +10,7 @@ import { EngagementChart } from "@/components/analytics/EngagementChart";
 import { FollowerGrowthChart } from "@/components/analytics/FollowerGrowthChart";
 import { CompetitorAnalysis } from "@/components/analytics/CompetitorAnalysis";
 import { ABTesting } from "@/components/analytics/ABTesting";
+import { EngagementHeatmap } from "@/components/analytics/EngagementHeatmap";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type Platform = "X" | "INSTAGRAM" | "FACEBOOK" | "ONLYFANS";
@@ -199,8 +200,9 @@ export default function Analytics() {
 
         {/* Charts Section */}
         <Tabs defaultValue="engagement" className="w-full">
-          <TabsList className="mb-4">
+          <TabsList className="mb-4 flex-wrap">
             <TabsTrigger value="engagement">Engagement</TabsTrigger>
+            <TabsTrigger value="heatmap">Heatmap</TabsTrigger>
             <TabsTrigger value="followers">Followers</TabsTrigger>
             <TabsTrigger value="competitors">Competitors</TabsTrigger>
             <TabsTrigger value="abtesting">A/B Testing</TabsTrigger>
@@ -230,6 +232,12 @@ export default function Analytics() {
                   <span className="text-xs text-muted-foreground">Clicks</span>
                 </div>
               </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="heatmap">
+            <div className="glass-panel rounded-2xl p-5">
+              <EngagementHeatmap />
             </div>
           </TabsContent>
 
