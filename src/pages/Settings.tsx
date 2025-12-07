@@ -12,6 +12,7 @@ import { useNavigate } from "react-router-dom";
 import { useTheme } from "@/hooks/useTheme";
 import { SocialAccountsManager } from "@/components/settings/SocialAccountsManager";
 import { TeamInvitations } from "@/components/settings/TeamInvitations";
+import { NotificationPreferences } from "@/components/settings/NotificationPreferences";
 
 interface Profile {
   id: string;
@@ -285,6 +286,9 @@ export default function Settings() {
 
         {/* Team Invitations */}
         <TeamInvitations />
+
+        {/* Notification Preferences */}
+        <NotificationPreferences />
 
         {/* Appearance */}
         <div className="glass-panel rounded-2xl p-5">
