@@ -7,7 +7,7 @@ import { Loader2, Image as ImageIcon, X, Eye, EyeOff, Upload, ListOrdered, Clipb
 import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
 import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/AuthContext";
+import { useProfile } from "@/hooks/useProfile";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { ContentCalendar } from "@/components/calendar/ContentCalendar";
 import { PostPreview } from "@/components/scheduler/PostPreview";
@@ -46,7 +46,7 @@ interface ScheduledPost {
 }
 
 export default function Scheduler() {
-  const { user } = useAuth();
+  const { profile, isLoading: profileLoading } = useProfile();
   const queryClient = useQueryClient();
   const fileInputRef = useRef<HTMLInputElement>(null);
   
@@ -68,33 +68,18 @@ export default function Scheduler() {
 
   // Fetch scheduled posts
   const { data: posts = [], isLoading } = useQuery({
-    queryKey: ["scheduled-posts", user?.id],
+    queryKey: ["scheduled-posts", profile?.id],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("scheduled_posts")
         .select("*")
-        .eq("user_id", user?.id)
+        .eq("user_id", profile!.id)
         .order("scheduled_at", { ascending: true });
 
       if (error) throw error;
       return data as ScheduledPost[];
     },
-    enabled: !!user?.id,
-  });
-
-  // Fetch user profile for email notifications
-  const { data: profile } = useQuery({
-    queryKey: ["profile", user?.id],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("email, display_name")
-        .eq("id", user?.id)
-        .single();
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!user?.id,
+    enabled: !!profile?.id,
   });
 
   // Create post mutation
@@ -111,7 +96,7 @@ export default function Scheduler() {
       const { data, error } = await supabase
         .from("scheduled_posts")
         .insert({
-          user_id: user?.id,
+          user_id: profile?.id,
           platform: postData.platform,
           content: postData.content,
           scheduled_at: postData.scheduled_at,
@@ -267,10 +252,10 @@ export default function Scheduler() {
   };
 
   const uploadMedia = async (): Promise<string | null> => {
-    if (!mediaFile || !user) return null;
+    if (!mediaFile || !profile) return null;
 
     const fileExt = mediaFile.name.split(".").pop();
-    const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+    const fileName = `${profile.id}/${Date.now()}.${fileExt}`;
 
     const { error } = await supabase.storage
       .from("post-media")
@@ -298,7 +283,7 @@ export default function Scheduler() {
       return;
     }
 
-    if (!user) {
+    if (!profile) {
       toast.error("You must be logged in");
       return;
     }
