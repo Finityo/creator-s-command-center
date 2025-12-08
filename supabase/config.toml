@@ -22,13 +22,13 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.publish-to-twitter]
-verify_jwt = true
+verify_jwt = false
 
 [functions.publish-to-instagram]
-verify_jwt = true
+verify_jwt = false
 
 [functions.publish-to-facebook]
-verify_jwt = true
+verify_jwt = false
 
 [functions.publish-to-onlyfans]
-verify_jwt = true
+verify_jwt = false
