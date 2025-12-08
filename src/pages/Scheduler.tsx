@@ -203,8 +203,21 @@ export default function Scheduler() {
   const handleAutoSchedule = async () => {
     setIsAutoScheduling(true);
     try {
+      // Refresh session before calling function to ensure valid token
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData.session) {
+        toast.error("Please log in again to use auto-schedule");
+        return;
+      }
+      
       const { data, error } = await supabase.functions.invoke("auto-schedule");
-      if (error) throw error;
+      if (error) {
+        if (error.message?.includes("401") || error.message?.includes("Unauthorized")) {
+          toast.error("Session expired. Please refresh and try again.");
+          return;
+        }
+        throw error;
+      }
       queryClient.invalidateQueries({ queryKey: ["scheduled-posts"] });
       toast.success(data.message || "Posts auto-scheduled!");
     } catch (error: any) {
