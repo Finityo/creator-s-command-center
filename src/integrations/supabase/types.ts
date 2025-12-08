@@ -117,6 +117,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "analytics_snapshots_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "social_accounts_safe"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "analytics_snapshots_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
@@ -522,6 +529,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "scheduled_posts_social_account_id_fkey"
+            columns: ["social_account_id"]
+            isOneToOne: false
+            referencedRelation: "social_accounts_safe"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "scheduled_posts_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
@@ -679,6 +693,54 @@ export type Database = {
           timezone?: string | null
         }
         Relationships: []
+      }
+      social_accounts_safe: {
+        Row: {
+          created_at: string | null
+          handle: string | null
+          id: string | null
+          is_connected: boolean | null
+          platform: Database["public"]["Enums"]["platform"] | null
+          token_expires_at: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          handle?: string | null
+          id?: string | null
+          is_connected?: boolean | null
+          platform?: Database["public"]["Enums"]["platform"] | null
+          token_expires_at?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          handle?: string | null
+          id?: string | null
+          is_connected?: boolean | null
+          platform?: Database["public"]["Enums"]["platform"] | null
+          token_expires_at?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_accounts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "social_accounts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Functions: {
