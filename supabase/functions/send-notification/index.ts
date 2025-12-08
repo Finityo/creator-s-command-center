@@ -117,6 +117,13 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Validate CRON_SECRET for cron invocations
+  const cronSecret = req.headers.get("x-cron-secret");
+  if (cronSecret !== Deno.env.get("CRON_SECRET")) {
+    console.error("Unauthorized: Invalid or missing CRON_SECRET");
+    return new Response("Unauthorized", { status: 401 });
+  }
+
   const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
   const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
   const supabase = createClient(supabaseUrl, supabaseServiceKey);
