@@ -447,6 +447,7 @@ export type Database = {
           content: string
           created_at: string
           error_message: string | null
+          external_post_id: string | null
           id: string
           media_url: string | null
           parent_post_id: string | null
@@ -468,6 +469,7 @@ export type Database = {
           content: string
           created_at?: string
           error_message?: string | null
+          external_post_id?: string | null
           id?: string
           media_url?: string | null
           parent_post_id?: string | null
@@ -489,6 +491,7 @@ export type Database = {
           content?: string
           created_at?: string
           error_message?: string | null
+          external_post_id?: string | null
           id?: string
           media_url?: string | null
           parent_post_id?: string | null

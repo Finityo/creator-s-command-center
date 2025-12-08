@@ -24,6 +24,52 @@ interface PublishResult {
   status: 'SENT' | 'FAILED';
   error?: string;
   attempts?: number;
+  externalId?: string;
+}
+
+type DeliveryResult =
+  | { ok: true; externalId?: string }
+  | { ok: false; error: string };
+
+interface DeliveryContext {
+  postId: string;
+  userId: string;
+  content: string;
+  mediaUrl?: string | null;
+  scheduledAt: string;
+}
+
+// Platform-agnostic delivery function
+async function deliverPost(
+  platform: ScheduledPost['platform'],
+  ctx: DeliveryContext,
+  serviceKey: string
+): Promise<{ result: DeliveryResult; attempts: number }> {
+  const functionMap: Record<ScheduledPost['platform'], string> = {
+    X: 'publish-to-twitter',
+    INSTAGRAM: 'publish-to-instagram',
+    FACEBOOK: 'publish-to-facebook',
+    ONLYFANS: 'publish-to-onlyfans',
+  };
+  
+  const functionName = functionMap[platform];
+  if (!functionName) {
+    return { result: { ok: false, error: `Unsupported platform: ${platform}` }, attempts: 1 };
+  }
+  
+  const publishResult = await callPublishFunctionWithRetry(functionName, ctx, serviceKey);
+  
+  if (publishResult.success) {
+    return { 
+      result: { ok: true, externalId: publishResult.externalId }, 
+      attempts: publishResult.attempts 
+    };
+  }
+  
+  return { 
+    result: { ok: false, error: publishResult.error || 'Unknown error' }, 
+    attempts: publishResult.attempts 
+  };
 }
 
 // Get the base URL for edge functions
@@ -40,14 +86,14 @@ function delay(ms: number): Promise<void> {
 // Call a platform-specific publishing function with retry logic
 async function callPublishFunctionWithRetry(
   functionName: string, 
-  post: ScheduledPost,
+  ctx: DeliveryContext,
   serviceKey: string,
   maxAttempts: number = MAX_RETRY_ATTEMPTS
-): Promise<{ success: boolean; error?: string; attempts: number }> {
+): Promise<{ success: boolean; error?: string; attempts: number; externalId?: string }> {
   let lastError: string | undefined;
   
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-    console.log(`Attempt ${attempt}/${maxAttempts} - Calling ${functionName} for post ${post.id}`);
+    console.log(`Attempt ${attempt}/${maxAttempts} - Calling ${functionName} for post ${ctx.postId}`);
     
     try {
       const url = getEdgeFunctionUrl(functionName);
@@ -58,10 +104,10 @@ async function callPublishFunctionWithRetry(
           'Authorization': `Bearer ${serviceKey}`,
         },
         body: JSON.stringify({
-          postId: post.id,
-          content: post.content,
-          mediaUrl: post.media_url,
-          scheduledAt: post.scheduled_at,
+          postId: ctx.postId,
+          content: ctx.content,
+          mediaUrl: ctx.mediaUrl,
+          scheduledAt: ctx.scheduledAt,
         }),
       });
 
@@ -91,7 +137,7 @@ async function callPublishFunctionWithRetry(
 
       const result = JSON.parse(responseText);
       if (result.success !== false) {
-        return { success: true, attempts: attempt };
+        return { success: true, attempts: attempt, externalId: result.externalId };
       }
       
       lastError = result.error || 'Unknown error';
@@ -116,28 +162,15 @@ async function callPublishFunctionWithRetry(
   return { success: false, error: lastError, attempts: maxAttempts };
 }
 
-// Route post to the appropriate publishing function
-async function publishPost(
-  post: ScheduledPost, 
-  serviceKey: string
-): Promise<{ success: boolean; error?: string; attempts: number }> {
-  switch (post.platform) {
-    case 'X':
-      return await callPublishFunctionWithRetry('publish-to-twitter', post, serviceKey);
-    
-    case 'INSTAGRAM':
-      return await callPublishFunctionWithRetry('publish-to-instagram', post, serviceKey);
-    
-    case 'FACEBOOK':
-      return await callPublishFunctionWithRetry('publish-to-facebook', post, serviceKey);
-    
-    case 'ONLYFANS':
-      return await callPublishFunctionWithRetry('publish-to-onlyfans', post, serviceKey);
-    
-    default:
-      console.error(`Unknown platform: ${post.platform}`);
-      return { success: false, error: `Unsupported platform: ${post.platform}`, attempts: 1 };
-  }
+// Build delivery context from post
+function buildDeliveryContext(post: ScheduledPost): DeliveryContext {
+  return {
+    postId: post.id,
+    userId: post.user_id,
+    content: post.content,
+    mediaUrl: post.media_url,
+    scheduledAt: post.scheduled_at,
+  };
 }
 
 // Send notification to user
@@ -233,33 +266,47 @@ serve(async (req) => {
       console.log(`Processing post ${post.id} for platform ${post.platform}`);
       
       try {
-        // Call the appropriate platform publishing function with retry
-        const publishResult = await publishPost(post, supabaseServiceKey);
+        // Build delivery context and call platform delivery
+        const ctx = buildDeliveryContext(post);
+        const { result, attempts } = await deliverPost(post.platform, ctx, supabaseServiceKey);
         
-        if (publishResult.success) {
-          console.log(`Successfully published post ${post.id} to ${post.platform} after ${publishResult.attempts} attempt(s)`);
-          results.push({ id: post.id, status: 'SENT', attempts: publishResult.attempts });
+        if (result.ok) {
+          console.log(`Successfully published post ${post.id} to ${post.platform} after ${attempts} attempt(s)`);
+          
+          // Update post status to SENT with external_post_id
+          await supabase
+            .from('scheduled_posts')
+            .update({ 
+              status: 'SENT',
+              external_post_id: result.externalId ?? null,
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', post.id)
+            .eq('status', 'SCHEDULED');
+          
+          results.push({ id: post.id, status: 'SENT', attempts, externalId: result.externalId });
           
           // Send success notification
           await sendNotification(supabase, supabaseServiceKey, post.user_id, 'post_sent', post.platform);
         } else {
-          console.error(`Failed to publish post ${post.id} after ${publishResult.attempts} attempts: ${publishResult.error}`);
+          console.error(`Failed to publish post ${post.id} after ${attempts} attempts: ${result.error}`);
           
           // Update post status to FAILED
           await supabase
             .from('scheduled_posts')
             .update({ 
               status: 'FAILED',
-              error_message: `Failed after ${publishResult.attempts} attempts: ${publishResult.error || 'Unknown publishing error'}`,
+              error_message: `Failed after ${attempts} attempts: ${result.error}`,
               updated_at: new Date().toISOString()
             })
-            .eq('id', post.id);
+            .eq('id', post.id)
+            .eq('status', 'SCHEDULED');
           
           results.push({ 
             id: post.id, 
             status: 'FAILED', 
-            error: publishResult.error,
-            attempts: publishResult.attempts 
+            error: result.error,
+            attempts 
           });
           
           // Send failure notification
@@ -269,7 +316,7 @@ serve(async (req) => {
             post.user_id, 
             'post_failed', 
             post.platform,
-            publishResult.error
+            result.error
           );
         }
       } catch (postError: any) {
