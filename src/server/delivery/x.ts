@@ -1,14 +1,12 @@
 // src/server/delivery/x.ts
 // Text-only Twitter/X posting via OAuth 2.0 (User Context)
 
-import type { DeliveryContext, DeliveryResult } from "./index";
+import type { DeliveryContext, DeliveryResult } from "./types";
 
 function simulateDelivery(ctx: DeliveryContext): DeliveryResult {
+  const simId = `sim_x_${Date.now()}`;
   console.log(`[SIMULATION] Would post to X for user ${ctx.userId}: "${ctx.content.substring(0, 50)}..."`);
-  return {
-    ok: true,
-    externalId: `sim_${Date.now()}`,
-  };
+  return { ok: true, externalId: simId };
 }
 
 export async function sendToX(ctx: DeliveryContext): Promise<DeliveryResult> {
