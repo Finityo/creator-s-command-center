@@ -3,22 +3,23 @@
 
 import type { DeliveryContext, DeliveryResult } from "./index";
 
-type XToken = {
-  access_token: string;
-};
-
-async function getXToken(userId: string): Promise<string> {
-  // Expect you already store per-user OAuth tokens tied to social_accounts
-  // This stub assumes a secure lookup layer exists
-  // Replace with your real token fetch
-  const token: XToken | null = await fetchUserXToken(userId);
-  if (!token?.access_token) throw new Error("Missing X access token");
-  return token.access_token;
-}
+const DELIVERY_MODE =
+  (typeof process !== "undefined" && process.env?.FINITYO_DELIVERY_MODE?.toLowerCase()) ?? "simulation";
 
 export async function sendToX(ctx: DeliveryContext): Promise<DeliveryResult> {
+  // Global safety guard: no live delivery while in simulation
+  if (DELIVERY_MODE === "simulation") {
+    return {
+      ok: false,
+      error: "X delivery is in simulation mode (no real posts sent)",
+    };
+  }
+
   try {
     const accessToken = await getXToken(ctx.userId);
+    if (!accessToken) {
+      return { ok: false, error: "X access token not configured" };
+    }
 
     const res = await fetch("https://api.twitter.com/2/tweets", {
       method: "POST",
@@ -34,7 +35,7 @@ export async function sendToX(ctx: DeliveryContext): Promise<DeliveryResult> {
       return { ok: false, error: err || "X post failed" };
     }
 
-    const json = await res.json() as { data?: { id?: string } };
+    const json = (await res.json()) as { data?: { id?: string } };
     return { ok: true, externalId: json?.data?.id };
   } catch (e: unknown) {
     const message = e instanceof Error ? e.message : "X delivery error";
@@ -42,8 +43,7 @@ export async function sendToX(ctx: DeliveryContext): Promise<DeliveryResult> {
   }
 }
 
-// ----- placeholder -----
-// Replace with real secure lookup (DB / vault)
-async function fetchUserXToken(_userId: string): Promise<XToken | null> {
+// Placeholder: we *intentionally* don't look up real tokens yet
+async function getXToken(_userId: string): Promise<string | null> {
   return null;
 }
