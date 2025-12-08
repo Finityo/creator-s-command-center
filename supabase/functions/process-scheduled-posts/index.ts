@@ -32,6 +32,7 @@ type DeliveryResult =
   | { ok: false; error: string };
 
 interface DeliveryContext {
+  platform: ScheduledPost['platform'];
   postId: string;
   userId: string;
   content: string;
@@ -39,12 +40,28 @@ interface DeliveryContext {
   scheduledAt: string;
 }
 
+const DELIVERY_MODE = Deno.env.get('FINITYO_DELIVERY_MODE')?.toLowerCase() ?? 'simulation';
+
+// Shared simulation helper
+function simulateDelivery(ctx: DeliveryContext): DeliveryResult {
+  const simId = `sim_${ctx.platform.toLowerCase()}_${Date.now()}`;
+  console.log(`[SIMULATION] Delivered ${ctx.platform} post`, {
+    postId: ctx.postId,
+    externalId: simId,
+  });
+  return { ok: true, externalId: simId };
+}
+
 // Platform-agnostic delivery function
-async function deliverPost(
-  platform: ScheduledPost['platform'],
+async function deliver(
   ctx: DeliveryContext,
   serviceKey: string
 ): Promise<{ result: DeliveryResult; attempts: number }> {
+  // Safety guard: simulate delivery when in simulation mode
+  if (DELIVERY_MODE === 'simulation') {
+    return { result: simulateDelivery(ctx), attempts: 1 };
+  }
+
   const functionMap: Record<ScheduledPost['platform'], string> = {
     X: 'publish-to-twitter',
     INSTAGRAM: 'publish-to-instagram',
@@ -52,9 +69,9 @@ async function deliverPost(
     ONLYFANS: 'publish-to-onlyfans',
   };
   
-  const functionName = functionMap[platform];
+  const functionName = functionMap[ctx.platform];
   if (!functionName) {
-    return { result: { ok: false, error: `Unsupported platform: ${platform}` }, attempts: 1 };
+    return { result: { ok: false, error: `Unsupported platform: ${ctx.platform}` }, attempts: 1 };
   }
   
   const publishResult = await callPublishFunctionWithRetry(functionName, ctx, serviceKey);
@@ -165,6 +182,7 @@ async function callPublishFunctionWithRetry(
 // Build delivery context from post
 function buildDeliveryContext(post: ScheduledPost): DeliveryContext {
   return {
+    platform: post.platform,
     postId: post.id,
     userId: post.user_id,
     content: post.content,
@@ -268,7 +286,7 @@ serve(async (req) => {
       try {
         // Build delivery context and call platform delivery
         const ctx = buildDeliveryContext(post);
-        const { result, attempts } = await deliverPost(post.platform, ctx, supabaseServiceKey);
+        const { result, attempts } = await deliver(ctx, supabaseServiceKey);
         
         if (result.ok) {
           console.log(`Successfully published post ${post.id} to ${post.platform} after ${attempts} attempt(s)`);
