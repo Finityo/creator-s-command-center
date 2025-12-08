@@ -19,6 +19,48 @@ function validateEnvironmentVariables() {
   }
 }
 
+// Extract and verify the authenticated user from the JWT
+async function getAuthenticatedUserId(req: Request): Promise<string> {
+  const authHeader = req.headers.get("Authorization");
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    throw new Error("Missing or invalid authorization header");
+  }
+
+  const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+  const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+  const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+    global: { headers: { Authorization: authHeader } }
+  });
+
+  const { data: { user }, error } = await supabase.auth.getUser();
+  if (error || !user) {
+    throw new Error("Unauthorized: Invalid or expired token");
+  }
+
+  return user.id;
+}
+
+// Verify the caller owns the post they're trying to publish
+async function verifyPostOwnership(postId: string, userId: string): Promise<void> {
+  const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+  const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+  const { data: post, error } = await supabase
+    .from("scheduled_posts")
+    .select("user_id")
+    .eq("id", postId)
+    .single();
+
+  if (error || !post) {
+    throw new Error("Post not found");
+  }
+
+  if (post.user_id !== userId) {
+    throw new Error("Unauthorized: You don't own this post");
+  }
+}
+
 interface PublishRequest {
   postId: string;
   content: string;
@@ -117,6 +159,10 @@ serve(async (req) => {
   try {
     validateEnvironmentVariables();
 
+    // Verify the authenticated user
+    const userId = await getAuthenticatedUserId(req);
+    console.log(`Authenticated user: ${userId}`);
+
     const { postId, content, mediaUrl, scheduledAt }: PublishRequest = await req.json();
     
     console.log(`Processing OnlyFans publish request for post ${postId}`);
@@ -127,6 +173,10 @@ serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    // Verify the user owns this post before publishing
+    await verifyPostOwnership(postId, userId);
+    console.log(`Ownership verified for post ${postId}`);
 
     // Prepare media URLs array if media exists
     const mediaUrls = mediaUrl ? [mediaUrl] : undefined;
@@ -203,13 +253,15 @@ serve(async (req) => {
       console.error("Error updating post status to FAILED:", updateError);
     }
 
+    // Return appropriate error status
+    const status = error.message.includes("Unauthorized") ? 401 : 500;
     return new Response(
       JSON.stringify({ 
         success: false, 
         error: error.message 
       }),
       { 
-        status: 500, 
+        status, 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
       }
     );

@@ -4,13 +4,13 @@ project_id = "hjaedchzihnrhssukpwd"
 verify_jwt = false
 
 [functions.content-suggestions]
-verify_jwt = false
+verify_jwt = true
 
 [functions.repurpose-content]
-verify_jwt = false
+verify_jwt = true
 
 [functions.analyze-sentiment]
-verify_jwt = false
+verify_jwt = true
 
 [functions.auto-schedule]
 verify_jwt = true
@@ -22,13 +22,13 @@ verify_jwt = false
 verify_jwt = false
 
 [functions.publish-to-twitter]
-verify_jwt = false
+verify_jwt = true
 
 [functions.publish-to-instagram]
-verify_jwt = false
+verify_jwt = true
 
 [functions.publish-to-facebook]
-verify_jwt = false
+verify_jwt = true
 
 [functions.publish-to-onlyfans]
-verify_jwt = false
+verify_jwt = true

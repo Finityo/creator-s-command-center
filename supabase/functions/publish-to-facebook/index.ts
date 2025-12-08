@@ -18,6 +18,48 @@ function validateEnvironmentVariables() {
   }
 }
 
+// Extract and verify the authenticated user from the JWT
+async function getAuthenticatedUserId(req: Request): Promise<string> {
+  const authHeader = req.headers.get("Authorization");
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    throw new Error("Missing or invalid authorization header");
+  }
+
+  const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+  const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+  const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+    global: { headers: { Authorization: authHeader } }
+  });
+
+  const { data: { user }, error } = await supabase.auth.getUser();
+  if (error || !user) {
+    throw new Error("Unauthorized: Invalid or expired token");
+  }
+
+  return user.id;
+}
+
+// Verify the caller owns the post they're trying to publish
+async function verifyPostOwnership(postId: string, userId: string): Promise<void> {
+  const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+  const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+  const { data: post, error } = await supabase
+    .from("scheduled_posts")
+    .select("user_id")
+    .eq("id", postId)
+    .single();
+
+  if (error || !post) {
+    throw new Error("Post not found");
+  }
+
+  if (post.user_id !== userId) {
+    throw new Error("Unauthorized: You don't own this post");
+  }
+}
+
 const GRAPH_API_URL = "https://graph.facebook.com/v18.0";
 
 interface PublishRequest {
@@ -148,6 +190,10 @@ serve(async (req) => {
   try {
     validateEnvironmentVariables();
 
+    // Verify the authenticated user
+    const userId = await getAuthenticatedUserId(req);
+    console.log(`Authenticated user: ${userId}`);
+
     const { postId, content, mediaUrl, mediaType, linkUrl }: PublishRequest = await req.json();
 
     if (!postId || !content) {
@@ -156,6 +202,10 @@ serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+
+    // Verify the user owns this post before publishing
+    await verifyPostOwnership(postId, userId);
+    console.log(`Ownership verified for post ${postId}`);
 
     console.log(`Publishing post ${postId} to Facebook: ${content.substring(0, 50)}...`);
 
@@ -223,9 +273,11 @@ serve(async (req) => {
       console.error("Failed to update post status:", e);
     }
 
+    // Return appropriate error status
+    const status = error.message.includes("Unauthorized") ? 401 : 500;
     return new Response(
       JSON.stringify({ error: error.message }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      { status, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
 });
