@@ -70,6 +70,19 @@ interface PublishRequest {
   linkUrl?: string;
 }
 
+// Input validation constants
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const FACEBOOK_MAX_LENGTH = 63206; // Facebook's maximum post length
+
+function validateInput(postId: string, content: string): void {
+  if (!UUID_REGEX.test(postId)) {
+    throw new Error("Invalid postId format: must be a valid UUID");
+  }
+  if (content.length > FACEBOOK_MAX_LENGTH) {
+    throw new Error(`Content exceeds Facebook's ${FACEBOOK_MAX_LENGTH} character limit`);
+  }
+}
+
 // Publish a text-only post
 async function publishTextPost(message: string): Promise<any> {
   const url = `${GRAPH_API_URL}/${FACEBOOK_PAGE_ID}/feed`;
@@ -202,6 +215,9 @@ serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+
+    // Validate input format and length
+    validateInput(postId, content);
 
     // Verify the user owns this post before publishing
     await verifyPostOwnership(postId, userId);
