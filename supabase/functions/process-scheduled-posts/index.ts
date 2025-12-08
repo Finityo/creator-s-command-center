@@ -197,12 +197,14 @@ async function sendNotification(
     }
 
     const notificationUrl = getEdgeFunctionUrl('send-notification');
+    const cronSecret = Deno.env.get('CRON_SECRET');
     
     const response = await fetch(notificationUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${serviceKey}`,
+        'x-cron-secret': cronSecret || '',
       },
       body: JSON.stringify({
         type,
