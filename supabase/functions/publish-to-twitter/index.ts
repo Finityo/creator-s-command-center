@@ -233,10 +233,12 @@ serve(async (req) => {
       console.error("Error updating post status:", updateError);
     }
 
+    const tweetId = tweetResult.data?.id;
+    
     return new Response(
       JSON.stringify({
         success: true,
-        tweetId: tweetResult.data?.id,
+        externalId: tweetId,
         message: "Tweet published successfully",
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
