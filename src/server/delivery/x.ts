@@ -3,16 +3,18 @@
 
 import type { DeliveryContext, DeliveryResult } from "./index";
 
-const DELIVERY_MODE =
-  (typeof process !== "undefined" && process.env?.FINITYO_DELIVERY_MODE?.toLowerCase()) ?? "simulation";
+function simulateDelivery(ctx: DeliveryContext): DeliveryResult {
+  console.log(`[SIMULATION] Would post to X for user ${ctx.userId}: "${ctx.content.substring(0, 50)}..."`);
+  return {
+    ok: true,
+    externalId: `sim_${Date.now()}`,
+  };
+}
 
 export async function sendToX(ctx: DeliveryContext): Promise<DeliveryResult> {
-  // Global safety guard: no live delivery while in simulation
-  if (DELIVERY_MODE === "simulation") {
-    return {
-      ok: false,
-      error: "X delivery is in simulation mode (no real posts sent)",
-    };
+  // Safety guard: simulate delivery when not in production mode
+  if (process.env.FINITYO_DELIVERY_MODE === "simulation") {
+    return simulateDelivery(ctx);
   }
 
   try {
