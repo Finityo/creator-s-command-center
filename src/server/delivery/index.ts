@@ -1,5 +1,7 @@
 // src/server/delivery/index.ts
-// Platform-agnostic delivery boundary (NO jobs, NO APIs yet)
+// Platform-agnostic delivery boundary
+
+import { sendToX } from "./x";
 
 export type Platform = "X" | "INSTAGRAM" | "FACEBOOK" | "ONLYFANS";
 
@@ -34,11 +36,6 @@ export async function deliverPost(
 }
 
 // ----- Platform stubs (safe, no external calls)
-
-async function sendToX(_: DeliveryContext): Promise<DeliveryResult> {
-  // TODO: wire X API
-  return { ok: false, error: "X delivery not enabled" };
-}
 
 async function sendToInstagram(_: DeliveryContext): Promise<DeliveryResult> {
   // TODO: wire Meta Graph API
