@@ -69,6 +69,19 @@ interface PublishRequest {
   mediaType?: "IMAGE" | "VIDEO" | "CAROUSEL";
 }
 
+// Input validation constants
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const INSTAGRAM_MAX_LENGTH = 2200;
+
+function validateInput(postId: string, content: string): void {
+  if (!UUID_REGEX.test(postId)) {
+    throw new Error("Invalid postId format: must be a valid UUID");
+  }
+  if (content.length > INSTAGRAM_MAX_LENGTH) {
+    throw new Error(`Content exceeds Instagram's ${INSTAGRAM_MAX_LENGTH} character limit`);
+  }
+}
+
 // Step 1: Create media container
 async function createMediaContainer(
   caption: string,
@@ -188,6 +201,9 @@ serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+
+    // Validate input format and length
+    validateInput(postId, content);
 
     if (!mediaUrl) {
       return new Response(

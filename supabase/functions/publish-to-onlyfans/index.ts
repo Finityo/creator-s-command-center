@@ -69,6 +69,19 @@ interface PublishRequest {
   scheduledAt?: string;
 }
 
+// Input validation constants
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const ONLYFANS_MAX_LENGTH = 10000; // OnlyFans post limit
+
+function validateInput(postId: string, content: string): void {
+  if (!UUID_REGEX.test(postId)) {
+    throw new Error("Invalid postId format: must be a valid UUID");
+  }
+  if (content.length > ONLYFANS_MAX_LENGTH) {
+    throw new Error(`Content exceeds OnlyFans' ${ONLYFANS_MAX_LENGTH} character limit`);
+  }
+}
+
 // OnlyFans API base URL (Note: OnlyFans doesn't have a public API)
 // This is a placeholder implementation - actual integration requires partnership
 const API_BASE_URL = "https://onlyfans.com/api2/v2";
@@ -173,6 +186,9 @@ serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+
+    // Validate input format and length
+    validateInput(postId, content);
 
     // Verify the user owns this post before publishing
     await verifyPostOwnership(postId, userId);

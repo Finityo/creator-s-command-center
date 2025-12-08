@@ -168,6 +168,19 @@ interface PublishRequest {
   content: string;
 }
 
+// Input validation constants
+const UUID_REGEX = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const TWITTER_MAX_LENGTH = 280;
+
+function validateInput(postId: string, content: string): void {
+  if (!UUID_REGEX.test(postId)) {
+    throw new Error("Invalid postId format: must be a valid UUID");
+  }
+  if (content.length > TWITTER_MAX_LENGTH) {
+    throw new Error(`Content exceeds Twitter's ${TWITTER_MAX_LENGTH} character limit`);
+  }
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === "OPTIONS") {
@@ -189,6 +202,9 @@ serve(async (req) => {
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
+
+    // Validate input format and length
+    validateInput(postId, content);
 
     // Verify the user owns this post before publishing
     await verifyPostOwnership(postId, userId);
