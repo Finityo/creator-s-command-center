@@ -40,28 +40,11 @@ interface DeliveryContext {
   scheduledAt: string;
 }
 
-const DELIVERY_MODE = Deno.env.get('FINITYO_DELIVERY_MODE')?.toLowerCase() ?? 'simulation';
-
-// Shared simulation helper
-function simulateDelivery(ctx: DeliveryContext): DeliveryResult {
-  const simId = `sim_${ctx.platform.toLowerCase()}_${Date.now()}`;
-  console.log(`[SIMULATION] Delivered ${ctx.platform} post`, {
-    postId: ctx.postId,
-    externalId: simId,
-  });
-  return { ok: true, externalId: simId };
-}
-
 // Platform-agnostic delivery function
 async function deliver(
   ctx: DeliveryContext,
   serviceKey: string
 ): Promise<{ result: DeliveryResult; attempts: number }> {
-  // Safety guard: simulate delivery when in simulation mode
-  if (DELIVERY_MODE === 'simulation') {
-    return { result: simulateDelivery(ctx), attempts: 1 };
-  }
-
   const functionMap: Record<ScheduledPost['platform'], string> = {
     X: 'publish-to-twitter',
     INSTAGRAM: 'publish-to-instagram',

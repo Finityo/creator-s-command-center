@@ -11,6 +11,7 @@ const API_KEY = Deno.env.get("TWITTER_CONSUMER_KEY")?.trim();
 const API_SECRET = Deno.env.get("TWITTER_CONSUMER_SECRET")?.trim();
 const ACCESS_TOKEN = Deno.env.get("TWITTER_ACCESS_TOKEN")?.trim();
 const ACCESS_TOKEN_SECRET = Deno.env.get("TWITTER_ACCESS_TOKEN_SECRET")?.trim();
+const DELIVERY_MODE = Deno.env.get("FINITYO_DELIVERY_MODE")?.toLowerCase() ?? "simulation";
 
 function validateEnvironmentVariables() {
   if (!API_KEY) {
@@ -25,6 +26,24 @@ function validateEnvironmentVariables() {
   if (!ACCESS_TOKEN_SECRET) {
     throw new Error("Missing TWITTER_ACCESS_TOKEN_SECRET environment variable");
   }
+}
+
+// Simulation helper
+function simulateDelivery(postId: string, content: string): Response {
+  const simId = `sim_x_${Date.now()}`;
+  console.log(`[SIMULATION] Would post to X:`, {
+    postId,
+    content: content.substring(0, 50) + "...",
+    externalId: simId,
+  });
+  return new Response(
+    JSON.stringify({
+      success: true,
+      externalId: simId,
+      message: "[SIMULATION] Tweet simulated successfully",
+    }),
+    { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+  );
 }
 
 // Extract and verify the authenticated user from the JWT
@@ -188,12 +207,6 @@ serve(async (req) => {
   }
 
   try {
-    validateEnvironmentVariables();
-
-    // Verify the authenticated user
-    const userId = await getAuthenticatedUserId(req);
-    console.log(`Authenticated user: ${userId}`);
-
     const { postId, content }: PublishRequest = await req.json();
 
     if (!postId || !content) {
@@ -205,6 +218,17 @@ serve(async (req) => {
 
     // Validate input format and length
     validateInput(postId, content);
+
+    // Safety guard: simulate delivery when in simulation mode
+    if (DELIVERY_MODE === "simulation") {
+      return simulateDelivery(postId, content);
+    }
+
+    validateEnvironmentVariables();
+
+    // Verify the authenticated user
+    const userId = await getAuthenticatedUserId(req);
+    console.log(`Authenticated user: ${userId}`);
 
     // Verify the user owns this post before publishing
     await verifyPostOwnership(postId, userId);
