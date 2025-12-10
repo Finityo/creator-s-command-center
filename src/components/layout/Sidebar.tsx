@@ -9,7 +9,8 @@ import {
   Link as LinkIcon,
   Menu,
   X,
-  Bell
+  Bell,
+  Library
 } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -17,6 +18,7 @@ import { Button } from "@/components/ui/button";
 const navItems = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/scheduler", label: "Scheduler", icon: Calendar },
+  { to: "/content-library", label: "Content Library", icon: Library },
   { to: "/streams", label: "Streams", icon: Radio },
   { to: "/analytics", label: "Analytics", icon: BarChart3 },
   { to: "/notifications", label: "Notifications", icon: Bell },

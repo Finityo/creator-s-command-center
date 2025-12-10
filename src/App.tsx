@@ -15,6 +15,7 @@ import Settings from "./pages/Settings";
 import LinkPage from "./pages/LinkPage";
 import PublicLinkPage from "./pages/PublicLinkPage";
 import Notifications from "./pages/Notifications";
+import ContentLibrary from "./pages/ContentLibrary";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -49,6 +50,9 @@ const App = () => (
             } />
             <Route path="/notifications" element={
               <ProtectedRoute><Notifications /></ProtectedRoute>
+            } />
+            <Route path="/content-library" element={
+              <ProtectedRoute><ContentLibrary /></ProtectedRoute>
             } />
             <Route path="/l/:slug" element={<PublicLinkPage />} />
             <Route path="*" element={<NotFound />} />
