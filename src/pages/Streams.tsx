@@ -16,7 +16,7 @@ const platforms = ["X", "Instagram", "Facebook"] as const;
 const trendingTopics = [
   { topic: "#CreatorEconomy", posts: "125K", growth: "+34%", platform: "X" },
   { topic: "#ContentCreator", posts: "89K", growth: "+22%", platform: "Instagram" },
-  { topic: "#BehindTheScenes", posts: "67K", growth: "+18%", platform: "OnlyFans" },
+  { topic: "#BehindTheScenes", posts: "67K", growth: "+18%", platform: "X" },
   { topic: "#DigitalCreator", posts: "45K", growth: "+15%", platform: "Facebook" },
   { topic: "#CreatorLife", posts: "38K", growth: "+12%", platform: "X" },
   { topic: "#SocialMedia2024", posts: "32K", growth: "+28%", platform: "Instagram" },
