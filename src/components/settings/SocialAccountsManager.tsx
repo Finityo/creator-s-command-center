@@ -26,8 +26,8 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 
-type Platform = "X" | "INSTAGRAM" | "FACEBOOK" | "ONLYFANS";
-type DisplayPlatform = "X" | "Instagram" | "Facebook" | "OnlyFans";
+type Platform = "X" | "INSTAGRAM" | "FACEBOOK";
+type DisplayPlatform = "X" | "Instagram" | "Facebook";
 
 const platformDisplayMap: Record<Platform, DisplayPlatform> = {
   X: "X",
