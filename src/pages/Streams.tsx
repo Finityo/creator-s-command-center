@@ -63,7 +63,7 @@ const contentIdeas = [
     title: "Exclusive Preview", 
     description: "Tease upcoming content or projects",
     engagement: "Very High",
-    platforms: ["OnlyFans", "X"],
+    platforms: ["X", "Instagram"],
     icon: "🔥"
   },
 ];
