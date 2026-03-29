@@ -27,17 +27,16 @@ interface SocialAccount {
 
 interface SocialAccount {
   id: string;
-  platform: "X" | "INSTAGRAM" | "FACEBOOK" | "ONLYFANS";
+  platform: "X" | "INSTAGRAM" | "FACEBOOK";
   handle: string;
   is_connected: boolean | null;
 }
 
 // Map database platform names to PlatformBadge component names
-const platformDisplayMap: Record<string, "X" | "Instagram" | "Facebook" | "OnlyFans"> = {
+const platformDisplayMap: Record<string, "X" | "Instagram" | "Facebook"> = {
   X: "X",
   INSTAGRAM: "Instagram",
   FACEBOOK: "Facebook",
-  ONLYFANS: "OnlyFans",
 };
 
 const TIMEZONES = [
@@ -192,7 +191,7 @@ export default function Settings() {
   };
 
   // Get all platforms with connection status
-  const allPlatforms = (["X", "INSTAGRAM", "FACEBOOK", "ONLYFANS"] as const).map(p => {
+  const allPlatforms = (["X", "INSTAGRAM", "FACEBOOK"] as const).map(p => {
     const account = socialAccounts.find(a => a.platform === p);
     return {
       platform: p,

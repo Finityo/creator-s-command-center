@@ -23,15 +23,14 @@ import { format } from "date-fns";
 import { PostStatusActions } from "./PostStatusActions";
 import { MarkSentAction } from "./MarkSentAction";
 
-type DbPlatform = "X" | "INSTAGRAM" | "FACEBOOK" | "ONLYFANS";
-type DisplayPlatform = "X" | "Instagram" | "Facebook" | "OnlyFans";
+type DbPlatform = "X" | "INSTAGRAM" | "FACEBOOK";
+type DisplayPlatform = "X" | "Instagram" | "Facebook";
 type PostStatus = "DRAFT" | "SCHEDULED" | "SENT" | "FAILED";
 
 const platformDisplayMap: Record<DbPlatform, DisplayPlatform> = {
   X: "X",
   INSTAGRAM: "Instagram",
   FACEBOOK: "Facebook",
-  ONLYFANS: "OnlyFans",
 };
 
 interface Post {

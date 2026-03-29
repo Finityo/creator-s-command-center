@@ -11,7 +11,7 @@ const RETRY_DELAY_MS = 2000;
 
 interface ScheduledPost {
   id: string;
-  platform: 'X' | 'INSTAGRAM' | 'FACEBOOK' | 'ONLYFANS';
+  platform: 'X' | 'INSTAGRAM' | 'FACEBOOK';
   content: string;
   media_url?: string;
   scheduled_at: string;
@@ -49,7 +49,6 @@ async function deliver(
     X: 'publish-to-twitter',
     INSTAGRAM: 'publish-to-instagram',
     FACEBOOK: 'publish-to-facebook',
-    ONLYFANS: 'publish-to-onlyfans',
   };
   
   const functionName = functionMap[ctx.platform];

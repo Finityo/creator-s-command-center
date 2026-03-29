@@ -1,7 +1,7 @@
 // src/server/delivery/types.ts
 // Shared types for the delivery boundary
 
-export type Platform = "X" | "INSTAGRAM" | "FACEBOOK" | "ONLYFANS";
+export type Platform = "X" | "INSTAGRAM" | "FACEBOOK";
 
 export type DeliveryResult =
   | { ok: true; externalId?: string }

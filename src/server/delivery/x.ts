@@ -11,7 +11,7 @@ function simulateDelivery(ctx: DeliveryContext): DeliveryResult {
 
 export async function sendToX(ctx: DeliveryContext): Promise<DeliveryResult> {
   // Safety guard: simulate delivery when not in production mode
-  if (process.env.FINITYO_DELIVERY_MODE === "simulation") {
+  if ((globalThis as any).process?.env?.FINITYO_DELIVERY_MODE === "simulation") {
     return simulateDelivery(ctx);
   }
 

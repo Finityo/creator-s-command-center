@@ -1,13 +1,12 @@
 import { PlatformBadge } from "@/components/PlatformBadge";
 
-type DatabasePlatform = "X" | "INSTAGRAM" | "FACEBOOK" | "ONLYFANS" | "";
-type BadgePlatform = "X" | "Instagram" | "Facebook" | "OnlyFans";
+type DatabasePlatform = "X" | "INSTAGRAM" | "FACEBOOK" | "";
+type BadgePlatform = "X" | "Instagram" | "Facebook";
 
 const platformToBadge: Record<string, BadgePlatform> = {
   X: "X",
   INSTAGRAM: "Instagram",
   FACEBOOK: "Facebook",
-  ONLYFANS: "OnlyFans",
 };
 
 interface PostPreviewProps {
@@ -31,11 +30,6 @@ const platformStyles: Record<string, { bg: string; textStyle: string; container:
     bg: "bg-[#1877F2]",
     textStyle: "text-white",
     container: "rounded-lg p-4",
-  },
-  ONLYFANS: {
-    bg: "bg-[#00AFF0]",
-    textStyle: "text-white",
-    container: "rounded-xl p-4",
   },
 };
 
@@ -61,7 +55,7 @@ export function PostPreview({ platform, content, mediaPreview }: PostPreviewProp
         {platform === "X" && <XPreview content={content} mediaPreview={mediaPreview} />}
         {platform === "INSTAGRAM" && <InstagramPreview content={content} mediaPreview={mediaPreview} />}
         {platform === "FACEBOOK" && <FacebookPreview content={content} mediaPreview={mediaPreview} />}
-        {platform === "ONLYFANS" && <OnlyFansPreview content={content} mediaPreview={mediaPreview} />}
+        
       </div>
     </div>
   );
@@ -149,27 +143,3 @@ function FacebookPreview({ content, mediaPreview }: { content: string; mediaPrev
   );
 }
 
-function OnlyFansPreview({ content, mediaPreview }: { content: string; mediaPreview: string | null }) {
-  return (
-    <div className="space-y-3">
-      <div className="flex items-center gap-3">
-        <div className="w-12 h-12 rounded-full bg-white/20" />
-        <div>
-          <span className="font-bold text-white block">Your Name</span>
-          <span className="text-white/70 text-xs">@your_handle</span>
-        </div>
-      </div>
-      <p className="text-white text-sm whitespace-pre-wrap">
-        {content || "Your post content will appear here..."}
-      </p>
-      {mediaPreview && (
-        <img src={mediaPreview} alt="Media" className="rounded-xl max-h-64 object-cover w-full" />
-      )}
-      <div className="flex items-center gap-4 pt-2 text-white/80">
-        <span className="text-sm">❤️ Like</span>
-        <span className="text-sm">💬 Comment</span>
-        <span className="text-sm">💰 Tip</span>
-      </div>
-    </div>
-  );
-}

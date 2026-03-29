@@ -36,7 +36,7 @@ export default function Landing() {
             </span>
           </h1>
           <p className="text-base md:text-lg text-muted-foreground leading-relaxed">
-            Connect OnlyFans, X, Instagram & Facebook. Schedule posts, track analytics, 
+            Connect X, Instagram & Facebook. Schedule posts, track analytics, 
             and manage your link-in-bio — all from one beautiful, iOS-style dashboard.
           </p>
           <div className="flex flex-wrap gap-3 pt-2">
@@ -83,8 +83,8 @@ export default function Landing() {
               
               <div className="space-y-3">
                 {[
-                  { platform: "OnlyFans", time: "6:30 PM", content: "Exclusive drop tonight 🔥", status: "Scheduled" },
-                  { platform: "X + Instagram", time: "8:00 PM", content: "Teaser carousel for upcoming content", status: "Queued" },
+                  { platform: "X", time: "6:30 PM", content: "New thread dropping tonight 🔥", status: "Scheduled" },
+                  { platform: "Instagram", time: "8:00 PM", content: "Teaser carousel for upcoming content", status: "Queued" },
                   { platform: "Analytics", time: "Live", content: "+324 followers this week", status: "Live" },
                 ].map((item, i) => (
                   <div 

@@ -4,17 +4,16 @@ import { Trash2, GripVertical } from "lucide-react";
 
 interface Post {
   id: string;
-  platform: "X" | "INSTAGRAM" | "FACEBOOK" | "ONLYFANS";
+  platform: "X" | "INSTAGRAM" | "FACEBOOK";
   content: string;
   scheduled_at: string;
   status: string;
 }
 
-const platformDisplayMap: Record<string, "X" | "Instagram" | "Facebook" | "OnlyFans"> = {
+const platformDisplayMap: Record<string, "X" | "Instagram" | "Facebook"> = {
   X: "X",
   INSTAGRAM: "Instagram",
   FACEBOOK: "Facebook",
-  ONLYFANS: "OnlyFans",
 };
 
 interface DraggablePostProps {

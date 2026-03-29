@@ -9,7 +9,7 @@ const PLATFORM_GUIDELINES: Record<string, string> = {
   X: "Twitter/X: Max 280 characters. Be concise and punchy. Use 1-3 relevant hashtags. Emojis are good but sparingly. Questions drive engagement.",
   INSTAGRAM: "Instagram: Storytelling format. Use emojis liberally. Include 20-30 relevant hashtags at the end. Personal and relatable tone. Call-to-action in bio link references.",
   FACEBOOK: "Facebook: Conversational and friendly. Can be longer form. Include a clear call-to-action. Questions encourage comments. Links are clickable here.",
-  ONLYFANS: "OnlyFans: Personal and intimate tone. Teasing without revealing too much. Create anticipation for exclusive content. Direct message references work well.",
+  
 };
 
 serve(async (req) => {

@@ -10,13 +10,13 @@ import {
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-const platforms = ["OnlyFans", "X", "Instagram", "Facebook"] as const;
+const platforms = ["X", "Instagram", "Facebook"] as const;
 
 // Trending topics data
 const trendingTopics = [
   { topic: "#CreatorEconomy", posts: "125K", growth: "+34%", platform: "X" },
   { topic: "#ContentCreator", posts: "89K", growth: "+22%", platform: "Instagram" },
-  { topic: "#BehindTheScenes", posts: "67K", growth: "+18%", platform: "OnlyFans" },
+  { topic: "#BehindTheScenes", posts: "67K", growth: "+18%", platform: "X" },
   { topic: "#DigitalCreator", posts: "45K", growth: "+15%", platform: "Facebook" },
   { topic: "#CreatorLife", posts: "38K", growth: "+12%", platform: "X" },
   { topic: "#SocialMedia2024", posts: "32K", growth: "+28%", platform: "Instagram" },
@@ -28,7 +28,7 @@ const contentIdeas = [
     title: "Behind the Scenes", 
     description: "Show your creative process or daily routine",
     engagement: "High",
-    platforms: ["Instagram", "OnlyFans"],
+    platforms: ["Instagram", "Facebook"],
     icon: "🎬"
   },
   { 
@@ -63,24 +63,18 @@ const contentIdeas = [
     title: "Exclusive Preview", 
     description: "Tease upcoming content or projects",
     engagement: "Very High",
-    platforms: ["OnlyFans", "X"],
+    platforms: ["X", "Instagram"],
     icon: "🔥"
   },
 ];
 
 // Activity stream data
 const mockStreamData: Record<string, { time: string; content: string; type: string }[]> = {
-  OnlyFans: [
-    { time: "Just now", content: "New subscriber joined! 🎉", type: "notification" },
-    { time: "5 min ago", content: "Tip received: $25", type: "tip" },
-    { time: "15 min ago", content: "Message from @user123: 'Love your content!'", type: "message" },
-    { time: "1 hour ago", content: "Post liked by 47 subscribers", type: "engagement" },
-  ],
   X: [
-    { time: "2 min ago", content: "@user mentioned you in a tweet", type: "mention" },
-    { time: "10 min ago", content: "Your post got 156 likes", type: "engagement" },
-    { time: "30 min ago", content: "New follower: @creator_fan", type: "follower" },
-    { time: "1 hour ago", content: "Retweet from @influencer", type: "engagement" },
+    { time: "Just now", content: "New follower gained! 🎉", type: "notification" },
+    { time: "5 min ago", content: "Post retweeted 12 times", type: "engagement" },
+    { time: "15 min ago", content: "Reply from @user123: 'Great thread!'", type: "message" },
+    { time: "1 hour ago", content: "Post liked by 47 people", type: "engagement" },
   ],
   Instagram: [
     { time: "3 min ago", content: "New comment on your Reel", type: "comment" },
@@ -305,7 +299,7 @@ export default function Streams() {
                   { platform: "X", times: ["9:00 AM", "12:00 PM", "5:00 PM"] },
                   { platform: "Instagram", times: ["11:00 AM", "2:00 PM", "7:00 PM"] },
                   { platform: "Facebook", times: ["1:00 PM", "4:00 PM", "8:00 PM"] },
-                  { platform: "OnlyFans", times: ["8:00 PM", "9:00 PM", "10:00 PM"] },
+                  
                 ].map((item) => (
                   <div key={item.platform} className="p-3 rounded-xl bg-secondary/30">
                     <PlatformBadge platform={item.platform as any} size="sm" />

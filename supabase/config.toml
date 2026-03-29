@@ -30,5 +30,3 @@ verify_jwt = false
 [functions.publish-to-facebook]
 verify_jwt = false
 
-[functions.publish-to-onlyfans]
-verify_jwt = false

@@ -32,14 +32,13 @@ import {
   Loader2
 } from "lucide-react";
 
-type Platform = "X" | "INSTAGRAM" | "FACEBOOK" | "ONLYFANS";
-type DisplayPlatform = "X" | "Instagram" | "Facebook" | "OnlyFans";
+type Platform = "X" | "INSTAGRAM" | "FACEBOOK";
+type DisplayPlatform = "X" | "Instagram" | "Facebook";
 
 const platformDisplayMap: Record<Platform, DisplayPlatform> = {
   X: "X",
   INSTAGRAM: "Instagram",
   FACEBOOK: "Facebook",
-  ONLYFANS: "OnlyFans",
 };
 
 interface PostWithAnalytics {

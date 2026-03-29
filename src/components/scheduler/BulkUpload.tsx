@@ -14,7 +14,7 @@ interface ParsedPost {
   error?: string;
 }
 
-const VALID_PLATFORMS = ["X", "INSTAGRAM", "FACEBOOK", "ONLYFANS"];
+const VALID_PLATFORMS = ["X", "INSTAGRAM", "FACEBOOK"];
 
 export function BulkUpload({ onClose }: { onClose: () => void }) {
   const { user } = useAuth();
@@ -109,7 +109,7 @@ export function BulkUpload({ onClose }: { onClose: () => void }) {
     try {
       const postsToInsert = validPosts.map((p) => ({
         user_id: user.id,
-        platform: p.platform as "X" | "INSTAGRAM" | "FACEBOOK" | "ONLYFANS",
+        platform: p.platform as "X" | "INSTAGRAM" | "FACEBOOK",
         content: p.content,
         scheduled_at: new Date(p.scheduled_at).toISOString(),
         status: "SCHEDULED" as const,
@@ -145,7 +145,7 @@ export function BulkUpload({ onClose }: { onClose: () => void }) {
 
       <div className="text-xs text-muted-foreground space-y-1">
         <p>Upload a CSV file with columns: <code className="bg-muted px-1 rounded">platform</code>, <code className="bg-muted px-1 rounded">content</code>, <code className="bg-muted px-1 rounded">scheduled_at</code></p>
-        <p>Valid platforms: X, INSTAGRAM, FACEBOOK, ONLYFANS</p>
+        <p>Valid platforms: X, INSTAGRAM, FACEBOOK</p>
         <p>Date format: YYYY-MM-DD HH:MM or ISO 8601</p>
       </div>
 

@@ -11,13 +11,12 @@ import { PostHistory } from "@/components/dashboard/PostHistory";
 import { RetryQueue } from "@/components/dashboard/RetryQueue";
 import { DashboardCards } from "@/components/dashboard/DashboardCards";
 
-type Platform = "X" | "INSTAGRAM" | "FACEBOOK" | "ONLYFANS";
+type Platform = "X" | "INSTAGRAM" | "FACEBOOK";
 
-const platformDisplayMap: Record<Platform, "X" | "Instagram" | "Facebook" | "OnlyFans"> = {
+const platformDisplayMap: Record<Platform, "X" | "Instagram" | "Facebook"> = {
   X: "X",
   INSTAGRAM: "Instagram",
   FACEBOOK: "Facebook",
-  ONLYFANS: "OnlyFans",
 };
 
 export default function Dashboard() {
@@ -75,7 +74,6 @@ export default function Dashboard() {
     { platform: "X", status: getAccountStatus("X") },
     { platform: "INSTAGRAM", status: getAccountStatus("INSTAGRAM") },
     { platform: "FACEBOOK", status: getAccountStatus("FACEBOOK") },
-    { platform: "ONLYFANS", status: getAccountStatus("ONLYFANS") },
   ];
 
   const formatPostTime = (dateStr: string) => {

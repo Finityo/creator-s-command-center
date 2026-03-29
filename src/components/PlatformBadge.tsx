@@ -1,8 +1,8 @@
 import { cn } from "@/lib/utils";
-import { Twitter, Instagram, Facebook, Star } from "lucide-react";
+import { Twitter, Instagram, Facebook } from "lucide-react";
 import { ElementType } from "react";
 
-type Platform = "X" | "Instagram" | "Facebook" | "OnlyFans";
+type Platform = "X" | "Instagram" | "Facebook";
 
 interface PlatformBadgeProps {
   platform: Platform;
@@ -14,7 +14,6 @@ const platformConfig: Record<Platform, { Icon: ElementType; label: string; color
   X: { Icon: Twitter, label: "X", color: "bg-foreground/10 text-foreground" },
   Instagram: { Icon: Instagram, label: "Instagram", color: "bg-gradient-to-r from-purple-500/20 to-pink-500/20 text-pink-400" },
   Facebook: { Icon: Facebook, label: "Facebook", color: "bg-blue-500/20 text-blue-400" },
-  OnlyFans: { Icon: Star, label: "OnlyFans", color: "bg-sky-500/20 text-sky-400" },
 };
 
 const iconSizes = {
