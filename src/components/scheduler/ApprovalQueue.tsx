@@ -24,8 +24,8 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 
-type Platform = "X" | "INSTAGRAM" | "FACEBOOK" | "ONLYFANS";
-type DisplayPlatform = "X" | "Instagram" | "Facebook" | "OnlyFans";
+type Platform = "X" | "INSTAGRAM" | "FACEBOOK";
+type DisplayPlatform = "X" | "Instagram" | "Facebook";
 type ApprovalStatus = "pending" | "approved" | "rejected" | "not_required";
 
 const platformDisplayMap: Record<Platform, DisplayPlatform> = {

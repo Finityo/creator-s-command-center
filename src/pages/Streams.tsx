@@ -28,7 +28,7 @@ const contentIdeas = [
     title: "Behind the Scenes", 
     description: "Show your creative process or daily routine",
     engagement: "High",
-    platforms: ["Instagram", "OnlyFans"],
+    platforms: ["Instagram", "Facebook"],
     icon: "🎬"
   },
   { 
