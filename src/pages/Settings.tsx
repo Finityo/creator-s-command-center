@@ -33,11 +33,10 @@ interface SocialAccount {
 }
 
 // Map database platform names to PlatformBadge component names
-const platformDisplayMap: Record<string, "X" | "Instagram" | "Facebook" | "OnlyFans"> = {
+const platformDisplayMap: Record<string, "X" | "Instagram" | "Facebook"> = {
   X: "X",
   INSTAGRAM: "Instagram",
   FACEBOOK: "Facebook",
-  ONLYFANS: "OnlyFans",
 };
 
 const TIMEZONES = [
