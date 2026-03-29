@@ -76,12 +76,6 @@ const mockStreamData: Record<string, { time: string; content: string; type: stri
     { time: "15 min ago", content: "Reply from @user123: 'Great thread!'", type: "message" },
     { time: "1 hour ago", content: "Post liked by 47 people", type: "engagement" },
   ],
-  X: [
-    { time: "2 min ago", content: "@user mentioned you in a tweet", type: "mention" },
-    { time: "10 min ago", content: "Your post got 156 likes", type: "engagement" },
-    { time: "30 min ago", content: "New follower: @creator_fan", type: "follower" },
-    { time: "1 hour ago", content: "Retweet from @influencer", type: "engagement" },
-  ],
   Instagram: [
     { time: "3 min ago", content: "New comment on your Reel", type: "comment" },
     { time: "12 min ago", content: "Story viewed by 234 people", type: "view" },
