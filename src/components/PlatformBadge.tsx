@@ -1,8 +1,8 @@
 import { cn } from "@/lib/utils";
-import { Twitter, Instagram, Facebook, Star } from "lucide-react";
+import { Twitter, Instagram, Facebook } from "lucide-react";
 import { ElementType } from "react";
 
-type Platform = "X" | "Instagram" | "Facebook" | "OnlyFans";
+type Platform = "X" | "Instagram" | "Facebook";
 
 interface PlatformBadgeProps {
   platform: Platform;
