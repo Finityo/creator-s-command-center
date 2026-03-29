@@ -27,7 +27,7 @@ interface SocialAccount {
 
 interface SocialAccount {
   id: string;
-  platform: "X" | "INSTAGRAM" | "FACEBOOK" | "ONLYFANS";
+  platform: "X" | "INSTAGRAM" | "FACEBOOK";
   handle: string;
   is_connected: boolean | null;
 }
