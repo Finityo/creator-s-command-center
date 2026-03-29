@@ -31,11 +31,6 @@ const platformStyles: Record<string, { bg: string; textStyle: string; container:
     textStyle: "text-white",
     container: "rounded-lg p-4",
   },
-  ONLYFANS: {
-    bg: "bg-[#00AFF0]",
-    textStyle: "text-white",
-    container: "rounded-xl p-4",
-  },
 };
 
 export function PostPreview({ platform, content, mediaPreview }: PostPreviewProps) {
