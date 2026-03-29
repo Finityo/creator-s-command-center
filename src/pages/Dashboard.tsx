@@ -74,7 +74,6 @@ export default function Dashboard() {
     { platform: "X", status: getAccountStatus("X") },
     { platform: "INSTAGRAM", status: getAccountStatus("INSTAGRAM") },
     { platform: "FACEBOOK", status: getAccountStatus("FACEBOOK") },
-    { platform: "ONLYFANS", status: getAccountStatus("ONLYFANS") },
   ];
 
   const formatPostTime = (dateStr: string) => {
