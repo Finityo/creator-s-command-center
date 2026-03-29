@@ -70,11 +70,11 @@ const contentIdeas = [
 
 // Activity stream data
 const mockStreamData: Record<string, { time: string; content: string; type: string }[]> = {
-  OnlyFans: [
-    { time: "Just now", content: "New subscriber joined! 🎉", type: "notification" },
-    { time: "5 min ago", content: "Tip received: $25", type: "tip" },
-    { time: "15 min ago", content: "Message from @user123: 'Love your content!'", type: "message" },
-    { time: "1 hour ago", content: "Post liked by 47 subscribers", type: "engagement" },
+  X: [
+    { time: "Just now", content: "New follower gained! 🎉", type: "notification" },
+    { time: "5 min ago", content: "Post retweeted 12 times", type: "engagement" },
+    { time: "15 min ago", content: "Reply from @user123: 'Great thread!'", type: "message" },
+    { time: "1 hour ago", content: "Post liked by 47 people", type: "engagement" },
   ],
   X: [
     { time: "2 min ago", content: "@user mentioned you in a tweet", type: "mention" },
