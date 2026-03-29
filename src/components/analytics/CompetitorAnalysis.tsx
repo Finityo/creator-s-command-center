@@ -15,7 +15,7 @@ interface Competitor {
   notes: string | null;
 }
 
-const PLATFORMS = ["X", "INSTAGRAM", "FACEBOOK", "ONLYFANS"];
+const PLATFORMS = ["X", "INSTAGRAM", "FACEBOOK"];
 
 // Mock performance data - in production this would come from real analytics
 const mockPerformance = () => ({

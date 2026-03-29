@@ -5,7 +5,7 @@ import { DraggablePost } from "./DraggablePost";
 
 interface Post {
   id: string;
-  platform: "X" | "INSTAGRAM" | "FACEBOOK" | "ONLYFANS";
+  platform: "X" | "INSTAGRAM" | "FACEBOOK";
   content: string;
   scheduled_at: string;
   status: string;

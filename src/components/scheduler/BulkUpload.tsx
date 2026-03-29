@@ -145,7 +145,7 @@ export function BulkUpload({ onClose }: { onClose: () => void }) {
 
       <div className="text-xs text-muted-foreground space-y-1">
         <p>Upload a CSV file with columns: <code className="bg-muted px-1 rounded">platform</code>, <code className="bg-muted px-1 rounded">content</code>, <code className="bg-muted px-1 rounded">scheduled_at</code></p>
-        <p>Valid platforms: X, INSTAGRAM, FACEBOOK, ONLYFANS</p>
+        <p>Valid platforms: X, INSTAGRAM, FACEBOOK</p>
         <p>Date format: YYYY-MM-DD HH:MM or ISO 8601</p>
       </div>
 

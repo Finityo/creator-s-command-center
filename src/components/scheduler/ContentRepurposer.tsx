@@ -23,7 +23,6 @@ export function ContentRepurposer({ content, sourcePlatform, onApplyContent }: C
     X: "",
     INSTAGRAM: "",
     FACEBOOK: "",
-    ONLYFANS: "",
   });
   const [isLoading, setIsLoading] = useState<Platform | null>(null);
   const [copiedPlatform, setCopiedPlatform] = useState<Platform | null>(null);

@@ -143,27 +143,3 @@ function FacebookPreview({ content, mediaPreview }: { content: string; mediaPrev
   );
 }
 
-function OnlyFansPreview({ content, mediaPreview }: { content: string; mediaPreview: string | null }) {
-  return (
-    <div className="space-y-3">
-      <div className="flex items-center gap-3">
-        <div className="w-12 h-12 rounded-full bg-white/20" />
-        <div>
-          <span className="font-bold text-white block">Your Name</span>
-          <span className="text-white/70 text-xs">@your_handle</span>
-        </div>
-      </div>
-      <p className="text-white text-sm whitespace-pre-wrap">
-        {content || "Your post content will appear here..."}
-      </p>
-      {mediaPreview && (
-        <img src={mediaPreview} alt="Media" className="rounded-xl max-h-64 object-cover w-full" />
-      )}
-      <div className="flex items-center gap-4 pt-2 text-white/80">
-        <span className="text-sm">❤️ Like</span>
-        <span className="text-sm">💬 Comment</span>
-        <span className="text-sm">💰 Tip</span>
-      </div>
-    </div>
-  );
-}

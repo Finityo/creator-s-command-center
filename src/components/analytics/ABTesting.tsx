@@ -18,7 +18,7 @@ interface ABTest {
   created_at: string;
 }
 
-const PLATFORMS = ["X", "INSTAGRAM", "FACEBOOK", "ONLYFANS"];
+const PLATFORMS = ["X", "INSTAGRAM", "FACEBOOK"];
 
 const generateMockEngagement = () => ({
   impressions: Math.floor(Math.random() * 5000) + 500,

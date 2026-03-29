@@ -4,14 +4,13 @@ import { useProfile } from "@/hooks/useProfile";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 
-type Platform = "X" | "INSTAGRAM" | "FACEBOOK" | "ONLYFANS";
+type Platform = "X" | "INSTAGRAM" | "FACEBOOK";
 type PostStatus = "DRAFT" | "SCHEDULED" | "SENT" | "FAILED";
 
-const platformDisplayMap: Record<Platform, "X" | "Instagram" | "Facebook" | "OnlyFans"> = {
+const platformDisplayMap: Record<Platform, "X" | "Instagram" | "Facebook"> = {
   X: "X",
   INSTAGRAM: "Instagram",
   FACEBOOK: "Facebook",
-  ONLYFANS: "OnlyFans",
 };
 
 const statusConfig: Record<PostStatus, { icon: typeof CheckCircle; label: string; className: string }> = {
