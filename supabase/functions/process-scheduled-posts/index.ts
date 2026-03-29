@@ -49,7 +49,6 @@ async function deliver(
     X: 'publish-to-twitter',
     INSTAGRAM: 'publish-to-instagram',
     FACEBOOK: 'publish-to-facebook',
-    ONLYFANS: 'publish-to-onlyfans',
   };
   
   const functionName = functionMap[ctx.platform];
