@@ -55,7 +55,7 @@ export function PostPreview({ platform, content, mediaPreview }: PostPreviewProp
         {platform === "X" && <XPreview content={content} mediaPreview={mediaPreview} />}
         {platform === "INSTAGRAM" && <InstagramPreview content={content} mediaPreview={mediaPreview} />}
         {platform === "FACEBOOK" && <FacebookPreview content={content} mediaPreview={mediaPreview} />}
-        {platform === "ONLYFANS" && <OnlyFansPreview content={content} mediaPreview={mediaPreview} />}
+        
       </div>
     </div>
   );
