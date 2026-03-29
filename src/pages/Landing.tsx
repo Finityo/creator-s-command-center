@@ -36,7 +36,7 @@ export default function Landing() {
             </span>
           </h1>
           <p className="text-base md:text-lg text-muted-foreground leading-relaxed">
-            Connect OnlyFans, X, Instagram & Facebook. Schedule posts, track analytics, 
+            Connect X, Instagram & Facebook. Schedule posts, track analytics, 
             and manage your link-in-bio — all from one beautiful, iOS-style dashboard.
           </p>
           <div className="flex flex-wrap gap-3 pt-2">
