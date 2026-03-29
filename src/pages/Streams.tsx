@@ -10,7 +10,7 @@ import {
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
-const platforms = ["OnlyFans", "X", "Instagram", "Facebook"] as const;
+const platforms = ["X", "Instagram", "Facebook"] as const;
 
 // Trending topics data
 const trendingTopics = [
