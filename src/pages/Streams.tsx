@@ -305,7 +305,7 @@ export default function Streams() {
                   { platform: "X", times: ["9:00 AM", "12:00 PM", "5:00 PM"] },
                   { platform: "Instagram", times: ["11:00 AM", "2:00 PM", "7:00 PM"] },
                   { platform: "Facebook", times: ["1:00 PM", "4:00 PM", "8:00 PM"] },
-                  { platform: "OnlyFans", times: ["8:00 PM", "9:00 PM", "10:00 PM"] },
+                  
                 ].map((item) => (
                   <div key={item.platform} className="p-3 rounded-xl bg-secondary/30">
                     <PlatformBadge platform={item.platform as any} size="sm" />
