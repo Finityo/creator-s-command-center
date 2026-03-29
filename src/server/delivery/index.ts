@@ -14,8 +14,6 @@ export async function deliver(ctx: DeliveryContext): Promise<DeliveryResult> {
       return sendToInstagram(ctx);
     case "FACEBOOK":
       return sendToFacebook(ctx);
-    case "ONLYFANS":
-      return sendToOnlyFans(ctx);
     default:
       return { ok: false, error: "Unsupported platform" };
   }
@@ -37,7 +35,7 @@ function simulateDelivery(ctx: DeliveryContext): DeliveryResult {
 // INSTAGRAM
 // -----------------------------
 async function sendToInstagram(ctx: DeliveryContext): Promise<DeliveryResult> {
-  if (process.env.FINITYO_DELIVERY_MODE === "simulation") {
+  if ((globalThis as any).process?.env?.FINITYO_DELIVERY_MODE === "simulation") {
     return simulateDelivery(ctx);
   }
 
@@ -48,20 +46,9 @@ async function sendToInstagram(ctx: DeliveryContext): Promise<DeliveryResult> {
 // FACEBOOK
 // -----------------------------
 async function sendToFacebook(ctx: DeliveryContext): Promise<DeliveryResult> {
-  if (process.env.FINITYO_DELIVERY_MODE === "simulation") {
+  if ((globalThis as any).process?.env?.FINITYO_DELIVERY_MODE === "simulation") {
     return simulateDelivery(ctx);
   }
 
   return { ok: false, error: "Facebook delivery not enabled" };
-}
-
-// -----------------------------
-// ONLYFANS (manual / partner-only)
-// -----------------------------
-async function sendToOnlyFans(ctx: DeliveryContext): Promise<DeliveryResult> {
-  if (process.env.FINITYO_DELIVERY_MODE === "simulation") {
-    return simulateDelivery(ctx);
-  }
-
-  return { ok: false, error: "OnlyFans manual delivery" };
 }

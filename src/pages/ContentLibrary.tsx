@@ -17,13 +17,12 @@ import { PlatformBadge } from "@/components/PlatformBadge";
 import { useProfile } from "@/hooks/useProfile";
 
 type PostStatus = "DRAFT" | "SCHEDULED" | "SENT" | "FAILED";
-type Platform = "X" | "Instagram" | "Facebook" | "OnlyFans";
+type Platform = "X" | "Instagram" | "Facebook";
 
 const platformMap: Record<string, Platform> = {
   X: "X",
   INSTAGRAM: "Instagram",
   FACEBOOK: "Facebook",
-  ONLYFANS: "OnlyFans",
 };
 
 const STATUS_ICON: Record<PostStatus, any> = {

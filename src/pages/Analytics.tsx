@@ -99,7 +99,6 @@ export default function Analytics() {
         engagement: stat.count > 0 ? +(stat.engagement / stat.count).toFixed(1) : 0,
       }))
     : [
-        { platform: "ONLYFANS", followers: 845, impressions: 12890, engagement: 6.3 },
         { platform: "X", followers: 3000, impressions: 15000, engagement: 3.1 },
         { platform: "INSTAGRAM", followers: 5000, impressions: 25000, engagement: 5.4 },
         { platform: "FACEBOOK", followers: 2500, impressions: 15000, engagement: 2.7 },

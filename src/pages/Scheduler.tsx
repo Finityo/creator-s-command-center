@@ -499,7 +499,6 @@ export default function Scheduler() {
                 className="w-full h-10 px-3 rounded-xl bg-background border border-border text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-ring"
               >
                 <option value="">Select platform</option>
-                <option value="ONLYFANS">OnlyFans</option>
                 <option value="X">X (Twitter)</option>
                 <option value="INSTAGRAM">Instagram</option>
                 <option value="FACEBOOK">Facebook</option>

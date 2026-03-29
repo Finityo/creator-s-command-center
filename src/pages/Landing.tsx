@@ -83,8 +83,8 @@ export default function Landing() {
               
               <div className="space-y-3">
                 {[
-                  { platform: "OnlyFans", time: "6:30 PM", content: "Exclusive drop tonight 🔥", status: "Scheduled" },
-                  { platform: "X + Instagram", time: "8:00 PM", content: "Teaser carousel for upcoming content", status: "Queued" },
+                  { platform: "X", time: "6:30 PM", content: "New thread dropping tonight 🔥", status: "Scheduled" },
+                  { platform: "Instagram", time: "8:00 PM", content: "Teaser carousel for upcoming content", status: "Queued" },
                   { platform: "Analytics", time: "Live", content: "+324 followers this week", status: "Live" },
                 ].map((item, i) => (
                   <div 

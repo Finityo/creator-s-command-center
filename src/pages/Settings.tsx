@@ -191,7 +191,7 @@ export default function Settings() {
   };
 
   // Get all platforms with connection status
-  const allPlatforms = (["X", "INSTAGRAM", "FACEBOOK", "ONLYFANS"] as const).map(p => {
+  const allPlatforms = (["X", "INSTAGRAM", "FACEBOOK"] as const).map(p => {
     const account = socialAccounts.find(a => a.platform === p);
     return {
       platform: p,
