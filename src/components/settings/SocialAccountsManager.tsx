@@ -33,7 +33,6 @@ const platformDisplayMap: Record<Platform, DisplayPlatform> = {
   X: "X",
   INSTAGRAM: "Instagram",
   FACEBOOK: "Facebook",
-  ONLYFANS: "OnlyFans",
 };
 
 interface SocialAccount {
