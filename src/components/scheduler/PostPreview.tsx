@@ -1,13 +1,12 @@
 import { PlatformBadge } from "@/components/PlatformBadge";
 
-type DatabasePlatform = "X" | "INSTAGRAM" | "FACEBOOK" | "ONLYFANS" | "";
-type BadgePlatform = "X" | "Instagram" | "Facebook" | "OnlyFans";
+type DatabasePlatform = "X" | "INSTAGRAM" | "FACEBOOK" | "";
+type BadgePlatform = "X" | "Instagram" | "Facebook";
 
 const platformToBadge: Record<string, BadgePlatform> = {
   X: "X",
   INSTAGRAM: "Instagram",
   FACEBOOK: "Facebook",
-  ONLYFANS: "OnlyFans",
 };
 
 interface PostPreviewProps {
