@@ -77,14 +77,6 @@ const PLATFORM_CONFIGS: PlatformConfig[] = [
     color: "bg-blue-500/20",
     requiresManualTokens: true,
   },
-  {
-    platform: "ONLYFANS",
-    displayName: "OnlyFans",
-    description: "Connect your OnlyFans account",
-    icon: "⭐",
-    color: "bg-sky-500/20",
-    requiresManualTokens: true,
-  },
 ];
 
 export function SocialAccountsManager() {
