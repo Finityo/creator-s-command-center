@@ -26,10 +26,9 @@ const PLATFORM_LIMITS: Record<string, { max: number; name: string }> = {
   X: { max: 280, name: "X (Twitter)" },
   INSTAGRAM: { max: 2200, name: "Instagram" },
   FACEBOOK: { max: 63206, name: "Facebook" },
-  ONLYFANS: { max: 5000, name: "OnlyFans" },
 };
 
-type Platform = "X" | "INSTAGRAM" | "FACEBOOK" | "ONLYFANS";
+type Platform = "X" | "INSTAGRAM" | "FACEBOOK";
 type PostStatus = "DRAFT" | "SCHEDULED" | "SENT" | "FAILED";
 
 interface ScheduledPost {
