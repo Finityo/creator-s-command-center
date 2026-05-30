@@ -14,7 +14,7 @@ interface ParsedPost {
   error?: string;
 }
 
-const VALID_PLATFORMS = ["X", "INSTAGRAM", "FACEBOOK", "ONLYFANS"];
+const VALID_PLATFORMS = ["X", "INSTAGRAM", "FACEBOOK"];
 
 export function BulkUpload({ onClose }: { onClose: () => void }) {
   const { user } = useAuth();
@@ -109,7 +109,7 @@ export function BulkUpload({ onClose }: { onClose: () => void }) {
     try {
       const postsToInsert = validPosts.map((p) => ({
         user_id: user.id,
-        platform: p.platform as "X" | "INSTAGRAM" | "FACEBOOK" | "ONLYFANS",
+        platform: p.platform as "X" | "INSTAGRAM" | "FACEBOOK",
         content: p.content,
         scheduled_at: new Date(p.scheduled_at).toISOString(),
         status: "SCHEDULED" as const,

@@ -4,13 +4,12 @@ import { RefreshCw, Loader2, Copy, Check, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 
-type Platform = "X" | "INSTAGRAM" | "FACEBOOK" | "ONLYFANS";
+type Platform = "X" | "INSTAGRAM" | "FACEBOOK";
 
 const PLATFORM_INFO: Record<Platform, { label: string; maxLength: number; tips: string }> = {
   X: { label: "X (Twitter)", maxLength: 280, tips: "Short, punchy, use hashtags sparingly" },
   INSTAGRAM: { label: "Instagram", maxLength: 2200, tips: "Storytelling, emojis, 20-30 hashtags" },
   FACEBOOK: { label: "Facebook", maxLength: 63206, tips: "Conversational, links, call-to-action" },
-  ONLYFANS: { label: "OnlyFans", maxLength: 5000, tips: "Personal, teasing, exclusive content" },
 };
 
 interface ContentRepurposerProps {
@@ -24,7 +23,6 @@ export function ContentRepurposer({ content, sourcePlatform, onApplyContent }: C
     X: "",
     INSTAGRAM: "",
     FACEBOOK: "",
-    ONLYFANS: "",
   });
   const [isLoading, setIsLoading] = useState<Platform | null>(null);
   const [copiedPlatform, setCopiedPlatform] = useState<Platform | null>(null);

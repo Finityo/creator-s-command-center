@@ -26,14 +26,13 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 
-type Platform = "X" | "INSTAGRAM" | "FACEBOOK" | "ONLYFANS";
-type DisplayPlatform = "X" | "Instagram" | "Facebook" | "OnlyFans";
+type Platform = "X" | "INSTAGRAM" | "FACEBOOK";
+type DisplayPlatform = "X" | "Instagram" | "Facebook";
 
 const platformDisplayMap: Record<Platform, DisplayPlatform> = {
   X: "X",
   INSTAGRAM: "Instagram",
   FACEBOOK: "Facebook",
-  ONLYFANS: "OnlyFans",
 };
 
 interface SocialAccount {
@@ -76,14 +75,6 @@ const PLATFORM_CONFIGS: PlatformConfig[] = [
     description: "Connect your Facebook Page for automatic posting",
     icon: "📘",
     color: "bg-blue-500/20",
-    requiresManualTokens: true,
-  },
-  {
-    platform: "ONLYFANS",
-    displayName: "OnlyFans",
-    description: "Connect your OnlyFans account",
-    icon: "⭐",
-    color: "bg-sky-500/20",
     requiresManualTokens: true,
   },
 ];
