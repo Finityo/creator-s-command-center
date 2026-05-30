@@ -117,6 +117,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "analytics_snapshots_account_id_fkey"
+            columns: ["account_id"]
+            isOneToOne: false
+            referencedRelation: "social_accounts_safe"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "analytics_snapshots_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
@@ -447,6 +454,7 @@ export type Database = {
           content: string
           created_at: string
           error_message: string | null
+          external_post_id: string | null
           id: string
           media_url: string | null
           parent_post_id: string | null
@@ -468,6 +476,7 @@ export type Database = {
           content: string
           created_at?: string
           error_message?: string | null
+          external_post_id?: string | null
           id?: string
           media_url?: string | null
           parent_post_id?: string | null
@@ -489,6 +498,7 @@ export type Database = {
           content?: string
           created_at?: string
           error_message?: string | null
+          external_post_id?: string | null
           id?: string
           media_url?: string | null
           parent_post_id?: string | null
@@ -516,6 +526,13 @@ export type Database = {
             columns: ["social_account_id"]
             isOneToOne: false
             referencedRelation: "social_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "scheduled_posts_social_account_id_fkey"
+            columns: ["social_account_id"]
+            isOneToOne: false
+            referencedRelation: "social_accounts_safe"
             referencedColumns: ["id"]
           },
           {
@@ -677,6 +694,54 @@ export type Database = {
         }
         Relationships: []
       }
+      social_accounts_safe: {
+        Row: {
+          created_at: string | null
+          handle: string | null
+          id: string | null
+          is_connected: boolean | null
+          platform: Database["public"]["Enums"]["platform"] | null
+          token_expires_at: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          handle?: string | null
+          id?: string | null
+          is_connected?: boolean | null
+          platform?: Database["public"]["Enums"]["platform"] | null
+          token_expires_at?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          handle?: string | null
+          id?: string | null
+          is_connected?: boolean | null
+          platform?: Database["public"]["Enums"]["platform"] | null
+          token_expires_at?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_accounts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "social_accounts_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "public_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       has_role: {
@@ -690,7 +755,7 @@ export type Database = {
     }
     Enums: {
       app_role: "owner" | "admin" | "editor" | "viewer"
-      platform: "X" | "INSTAGRAM" | "FACEBOOK" | "ONLYFANS"
+      platform: "X" | "INSTAGRAM" | "FACEBOOK"
       post_status: "DRAFT" | "SCHEDULED" | "SENT" | "FAILED"
     }
     CompositeTypes: {
@@ -820,7 +885,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["owner", "admin", "editor", "viewer"],
-      platform: ["X", "INSTAGRAM", "FACEBOOK", "ONLYFANS"],
+      platform: ["X", "INSTAGRAM", "FACEBOOK"],
       post_status: ["DRAFT", "SCHEDULED", "SENT", "FAILED"],
     },
   },
