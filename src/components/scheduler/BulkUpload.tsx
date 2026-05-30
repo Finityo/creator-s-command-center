@@ -14,7 +14,7 @@ interface ParsedPost {
   error?: string;
 }
 
-const VALID_PLATFORMS = ["X", "INSTAGRAM", "FACEBOOK", "ONLYFANS"];
+const VALID_PLATFORMS = ["X", "INSTAGRAM", "FACEBOOK"];
 
 export function BulkUpload({ onClose }: { onClose: () => void }) {
   const { user } = useAuth();
